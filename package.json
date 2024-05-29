@@ -1,0 +1,18 @@
+{
+  "name": "com.daftmobile.elympics-lobby",
+  "version": "0.1.0",
+  "description": "ElympicsLobbyPackage is an implementation of Elympics rooms and wallet communication",
+  "displayName": "Elympics Lobby Package",
+  "unity": "2021.3",
+  "author": {
+    "name": "Elympics",
+    "email": "hello@elympics.cc",
+    "url": "https://www.elympics.cc/"
+  },
+  "documentationUrl": "https://docs.elympics.cc/",
+  "license": "See LICENSE.md file",
+  "keywords": [
+    "multiplayer",
+    "networking"
+  ]
+}
