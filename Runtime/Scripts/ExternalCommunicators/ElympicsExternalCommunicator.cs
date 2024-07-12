@@ -14,7 +14,7 @@ namespace ElympicsLobbyPackage
     public class ElympicsExternalCommunicator : MonoBehaviour
     {
         [PublicAPI]
-        public static ElympicsExternalCommunicator? Instsance;
+        public static ElympicsExternalCommunicator? Instance;
 
         [PublicAPI]
         public IExternalAuthorizer? ExternalAuthorizer;
@@ -30,7 +30,7 @@ namespace ElympicsLobbyPackage
         private JsCommunicator _jsCommunicator = null!;
         private void Awake()
         {
-            if (Instsance is null)
+            if (Instance is null)
             {
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator is null)
@@ -40,7 +40,7 @@ namespace ElympicsLobbyPackage
             WalletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator, scsConfig);
             GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator);
 #endif
-                Instsance = this;
+                Instance = this;
             }
             else
                 Destroy(gameObject);
