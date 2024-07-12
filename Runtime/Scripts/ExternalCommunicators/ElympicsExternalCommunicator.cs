@@ -13,19 +13,21 @@ namespace ElympicsLobbyPackage
     [RequireComponent(typeof(JsCommunicator))]
     public class ElympicsExternalCommunicator : MonoBehaviour
     {
-        [SerializeField] private SmartContractServiceConfig scsConfig;
-        private JsCommunicator _jsCommunicator;
+        [PublicAPI]
         public static ElympicsExternalCommunicator? Instsance;
 
         [PublicAPI]
-        public IExternalAuthorizer ExternalAuthorizer = null!;
+        public IExternalAuthorizer? ExternalAuthorizer;
 
         [PublicAPI]
-        public IExternalWalletCommunicator WalletCommunicator = null!;
+        public IExternalWalletCommunicator? WalletCommunicator;
 
         [PublicAPI]
-        public IExternalGameStatusCommunicator GameStatusCommunicator = null!;
+        public IExternalGameStatusCommunicator? GameStatusCommunicator;
 
+        [SerializeField] private SmartContractServiceConfig scsConfig = null!;
+
+        private JsCommunicator _jsCommunicator = null!;
         private void Awake()
         {
             if (Instsance is null)
