@@ -14,5 +14,8 @@
   "keywords": [
     "multiplayer",
     "networking"
-  ]
+  ],
+  "dependencies": {
+    "com.daftmobile.elympics": "https://github.com/Elympics/Unity-SDK.git#v.0.11.0"
+  }
 }
