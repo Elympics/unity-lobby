@@ -1,8 +1,8 @@
 {
-  "name": "com.daftmobile.elympics-lobby",
+  "name": "com.daftmobile.external-communicator",
   "version": "0.1.0",
-  "description": "ElympicsLobbyPackage is an implementation of Elympics rooms and wallet communication",
-  "displayName": "Elympics Lobby Package",
+  "description": "Elympics External Communicator is an implementation of Elympics authorization and wallet communication",
+  "displayName": "Elympics External Communicator",
   "unity": "2021.3",
   "author": {
     "name": "Elympics",
@@ -14,5 +14,8 @@
   "keywords": [
     "multiplayer",
     "networking"
-  ]
+  ],
+  "dependencies": {
+    "com.daftmobile.elympics": "https://github.com/Elympics/Unity-SDK.git#v.0.11.0"
+  }
 }
