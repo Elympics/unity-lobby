@@ -13,7 +13,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
 		public event Action<string>? ResponseObjectReceived;
 		public event Action<string>? WebObjectReceived;
 
-		private int _requestCounter = 0;
+		private int _requestCounter;
 		private const string ProtocolVersion = "0.1.0";
 		private const string GameObjectName = "JsReceiver";
 

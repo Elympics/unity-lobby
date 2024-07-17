@@ -46,7 +46,7 @@ namespace ElympicsLobbyPackage
                 Destroy(gameObject);
         }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || !UNITY_WEBGL
         [PublicAPI]
         public void SetCustomExternalAuthorizer(IExternalAuthorizer customExternalAuthorizer) => ExternalAuthorizer = customExternalAuthorizer ?? throw new ArgumentNullException(nameof(customExternalAuthorizer));
         [PublicAPI]
