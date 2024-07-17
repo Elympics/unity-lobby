@@ -31,7 +31,7 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
             _communicator = FindObjectOfType<ElympicsExternalCommunicator>();
 #if UNITY_EDITOR || !UNITY_WEBGL
             _communicator.SetCustomExternalWalletCommunicator(new StandaloneExternalWalletCommunicator(_browserJsConfig,_scs));
-//#else
+#else
             _communicator.WalletCommunicator.WalletConnected+= OnWalletConnected;
             _communicator.WalletCommunicator.WalletDisconnected += OnWalletDisconnected;
 #endif
