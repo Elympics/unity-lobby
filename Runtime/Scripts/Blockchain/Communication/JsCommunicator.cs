@@ -10,11 +10,11 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
 {
 	internal class JsCommunicator : MonoBehaviour, IJsCommunicatorRetriever
 	{
-		public const string ProtocolVersion = "0.1.0";
 		public event Action<string>? ResponseObjectReceived;
 		public event Action<string>? WebObjectReceived;
 
 		private int _requestCounter = 0;
+		private const string ProtocolVersion = "0.1.0";
 		private const string GameObjectName = "JsReceiver";
 
 		private static JsCommunicator instance = null!;
