@@ -1,25 +1,35 @@
 #nullable enable
 using System;
 using ElympicsLobbyPackage.Authorization;
+using ElympicsLobbyPackage.Blockchain;
 using ElympicsLobbyPackage.Blockchain.Communication;
 using ElympicsLobbyPackage.Blockchain.EditorIntegration;
 using ElympicsLobbyPackage.ExternalCommunication;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
 using JetBrains.Annotations;
-using SCS;
 using UnityEngine;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using Elympics;
+using ElympicsLobbyPackage.Blockchain;
+using ElympicsLobbyPackage.Blockchain.EditorIntegration;
+#endif
 
 namespace ElympicsLobbyPackage
 {
     [RequireComponent(typeof(JsCommunicator))]
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.ExternalCommunicator)]
-    public class ElympicsExternalCommunicator : MonoBehaviour, IWalletConnectionListener
+    public class ElympicsExternalCommunicator : MonoBehaviour, IPlayPadEventListener
     {
         [PublicAPI]
         public event Action<string, string>? WalletConnected;
 
         [PublicAPI]
         public event Action? WalletDisconnected;
+
+        [PublicAPI]
+        public event Action<TrustDepositInfo>? TrustDepositCompleted;
 
         [PublicAPI]
         public static ElympicsExternalCommunicator? Instance;
@@ -33,14 +43,20 @@ namespace ElympicsLobbyPackage
         [PublicAPI]
         public IExternalGameStatusCommunicator? GameStatusCommunicator;
 
-        [SerializeField] private SmartContractServiceConfig scsConfig = null!;
+        [PublicAPI]
+        public IExternalERC20SmartContractOperations? TokenCommunicator;
+
+        [PublicAPI]
+        public IExternalTrustSmartContractOperations? TrustCommunicator;
 
         [SerializeField] private StandaloneExternalAuthorizerConfig standaloneAuthConfig = null!;
-
         [SerializeField] private StandaloneBrowserJsConfig standaloneWalletConfig = null!;
 
         private JsCommunicator _jsCommunicator = null!;
-        private WebGLFunctionalities _webGLFunctionalities = null!;
+        private WebGLFunctionalities? _webGLFunctionalities;
+        private IElympicsLobbyWrapper _lobby;
+        private ISmartContractServiceWrapper? _scsWrapper;
+
         private void Awake()
         {
             if (Instance == null)
@@ -48,18 +64,33 @@ namespace ElympicsLobbyPackage
 
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator == null)
-                    throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find JsCommunicator component on gameObject {gameObject.name}");
+                    throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");
+
+                _lobby = GetComponent<IElympicsLobbyWrapper>();
+                if (_lobby == null)
+                    throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(IElympicsLobbyWrapper)} component on gameObject {gameObject.name}");
+
+
+                _scsWrapper = GetComponent<ISmartContractServiceWrapper>();
+
 #if UNITY_WEBGL && !UNITY_EDITOR
-            _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
-            ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator);
-            WalletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator, scsConfig);
-            GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator);
+                _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
+                ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator);
+                WalletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator, _scsWrapper);
+                GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator);
+                var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
+                TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, WalletCommunicator);
+                TrustCommunicator = new WebGlTrustSmartContractCommunicator(_jsCommunicator, _lobby);
 #else
+                var standaloneCommunicator = new StandaloneCommunicator(standaloneWalletConfig);
                 ExternalAuthenticator = new StandaloneExternalAuthenticator(standaloneAuthConfig);
-                WalletCommunicator = new StandaloneExternalWalletCommunicator(standaloneWalletConfig, GetComponent<SmartContractService>());
+                WalletCommunicator = standaloneCommunicator;
+                TokenCommunicator = new Erc20SmartContractCommunicator(standaloneCommunicator, standaloneCommunicator);
+                TrustCommunicator = new StandardExternalTrustSmartContractOperations(_scsWrapper);
+                GameStatusCommunicator = new StandaloneExternalGameStatusCommunicator();
 #endif
                 Instance = this;
-                WalletCommunicator.SetWalletConnectionListener(this);
+                WalletCommunicator.SetPlayPadEventListener(this);
             }
             else
                 Destroy(gameObject);
@@ -72,14 +103,48 @@ namespace ElympicsLobbyPackage
         public void SetCustomExternalWalletCommunicator(IExternalWalletCommunicator customExternalWalletCommunicator)
         {
             WalletCommunicator = customExternalWalletCommunicator ?? throw new ArgumentNullException(nameof(customExternalWalletCommunicator));
-            WalletCommunicator.SetWalletConnectionListener(this);
+            WalletCommunicator.SetPlayPadEventListener(this);
         }
         [PublicAPI]
         public void SetCustomExternalGameStatusCommunicator(IExternalGameStatusCommunicator customExternalGameStatusCommunicator) => GameStatusCommunicator = customExternalGameStatusCommunicator ?? throw new ArgumentNullException(nameof(customExternalGameStatusCommunicator));
+
+        [PublicAPI]
+        public void SetCustomERC20TokenCommunicator(IExternalERC20SmartContractOperations customExternalErc20SmartContractOperations) => TokenCommunicator = customExternalErc20SmartContractOperations ?? throw new ArgumentNullException(nameof(customExternalErc20SmartContractOperations));
+        [PublicAPI]
+        public void SetCustomTrustTokenCommunicator(IExternalTrustSmartContractOperations customExternalTrustSmartContractOperations) => TrustCommunicator = customExternalTrustSmartContractOperations ?? throw new ArgumentNullException(nameof(customExternalTrustSmartContractOperations));
 #endif
 
-        private void OnDestroy() => WalletCommunicator?.Dispose();
+        private void OnDestroy()
+        {
+            WalletCommunicator?.Dispose();
+            _webGLFunctionalities?.Dispose();
+        }
         public void OnWalletConnected(string address, string chainId) => WalletConnected?.Invoke(address, chainId);
         public void OnWalletDisconnected() => WalletDisconnected?.Invoke();
+        void IPlayPadEventListener.OnTrustDepositFinished(TrustDepositTransactionFinishedWebMessage transaction)
+        {
+            var currentTrustState = new TrustState()
+            {
+                AvailableAmount = transaction.trustState.Available,
+                TotalAmount = transaction.trustState.totalAmount,
+            };
+            if (transaction.status == 0)
+            {
+                var added = transaction.increasedAmount;
+                TrustDepositCompleted?.Invoke(new TrustDepositInfo
+                {
+                    Added = added,
+                    TrustState = currentTrustState
+                });
+            }
+            else
+            {
+                TrustDepositCompleted?.Invoke(new TrustDepositInfo()
+                {
+                    Added = 0,
+                    TrustState = currentTrustState
+                });
+            }
+        }
     }
 }
