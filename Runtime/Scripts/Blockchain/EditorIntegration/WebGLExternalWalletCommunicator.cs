@@ -29,6 +29,7 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
             _communicator = jsCommunicator;
             var elympicsConfig = ElympicsConfig.Load();
             _currentConfig = scsConfig.GetChainConfigForGameId(elympicsConfig.GetCurrentGameConfig().GameId);
+            _communicator.WebObjectReceived += OnWebObjectReceived;
         }
 
         private void OnWebObjectReceived(string messageObject)
