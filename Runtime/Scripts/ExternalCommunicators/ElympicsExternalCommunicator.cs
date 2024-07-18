@@ -54,5 +54,7 @@ namespace ElympicsLobbyPackage
         [PublicAPI]
         public void SetCustomExternalGameStatusCommunicator(IExternalGameStatusCommunicator customExternalGameStatusCommunicator) => GameStatusCommunicator = customExternalGameStatusCommunicator ?? throw new ArgumentNullException(nameof(customExternalGameStatusCommunicator));
 #endif
+
+        private void OnDestroy() => WalletCommunicator?.Dispose();
     }
 }
