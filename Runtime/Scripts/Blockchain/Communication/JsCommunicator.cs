@@ -55,12 +55,14 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
 		[UsedImplicitly]
 		public void HandleResponse(string responseObject)
 		{
+            Debug.Log($"[{nameof(JsCommunicator)}] Handle Response.");
 			ResponseObjectReceived?.Invoke(responseObject);
 		}
 
 		[UsedImplicitly]
 		public void HandleWebEvent(string messageObject)
 		{
+            Debug.Log($"[{nameof(JsCommunicator)}] Handle Web Event.");
 			WebObjectReceived?.Invoke(messageObject);
 		}
 
