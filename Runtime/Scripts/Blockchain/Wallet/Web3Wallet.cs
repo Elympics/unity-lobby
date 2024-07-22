@@ -146,7 +146,6 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
 			await UniTask.WaitUntil(() => _scs.CurrentChain != null);
 		}
 
-		private void OnDestroy() => _communicator!.WalletCommunicator.Dispose();
         private void OnWalletConnected(string address, string chainId)
         {
             if ((_address ?? string.Empty) == (address ?? string.Empty))
