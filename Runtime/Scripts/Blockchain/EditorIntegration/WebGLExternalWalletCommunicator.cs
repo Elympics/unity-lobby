@@ -26,7 +26,6 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         private ChainConfig? _currentConfig;
         public WebGLExternalWalletCommunicator(JsCommunicator jsCommunicator, SmartContractServiceConfig scsConfig)
         {
-            Debug.Log($"[{nameof(WebGLExternalWalletCommunicator)}] Constructor.");
             _communicator = jsCommunicator;
             var elympicsConfig = ElympicsConfig.Load();
             _currentConfig = scsConfig.GetChainConfigForGameId(elympicsConfig.GetCurrentGameConfig().GameId);
