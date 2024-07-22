@@ -26,6 +26,7 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         private ChainConfig? _currentConfig;
         public WebGLExternalWalletCommunicator(JsCommunicator jsCommunicator, SmartContractServiceConfig scsConfig)
         {
+            Debug.Log($"[{nameof(WebGLExternalWalletCommunicator)}] Constructor.");
             _communicator = jsCommunicator;
             var elympicsConfig = ElympicsConfig.Load();
             _currentConfig = scsConfig.GetChainConfigForGameId(elympicsConfig.GetCurrentGameConfig().GameId);
@@ -139,6 +140,10 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
             return await _communicator.SendRequestMessage<EncodeFunctionData, string>(ReturnEventTypes.GetValue, message);
         }
 
-        public void Dispose() => _communicator.WebObjectReceived -= OnWebObjectReceived;
+        public void Dispose()
+        {
+            Debug.Log($"[{nameof(WebGLExternalWalletCommunicator)}] Dispose.");
+            _communicator.WebObjectReceived -= OnWebObjectReceived;
+        }
     }
 }
