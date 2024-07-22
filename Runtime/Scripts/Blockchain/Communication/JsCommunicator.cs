@@ -26,7 +26,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
             if (instance == null)
             {
                 instance = this;
-                DontDestroyOnLoad(this);
+                DontDestroyOnLoad(gameObject);
                 gameObject.name = GameObjectName;
                 _messageFactory = new JsCommunicationFactory(ProtocolVersion);
                 _dispatcher = new RequestMessageDispatcher(this);
