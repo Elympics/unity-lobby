@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace ElympicsLobbyPackage.Authorization
 {
     public static class CapabilitiesExt
