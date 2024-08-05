@@ -40,7 +40,6 @@ namespace ElympicsLobbyPackage.Session
             _externalCommunicator = externalCommunicator;
             externalCommunicator!.WalletCommunicator!.WalletDisconnected += OnWalletConnected;
             externalCommunicator.WalletCommunicator.WalletDisconnected += OnWalletDisconnected;
-            _lobby.WebSocketSession.Disconnected += OnDisconnected;
         }
 
         [PublicAPI]
@@ -57,18 +56,30 @@ namespace ElympicsLobbyPackage.Session
             if (_lobby is { IsAuthenticated: true, WebSocketSession: { IsConnected: true } })
                 return;
 
-            await InitializeLoginWithWallet();
+            await TryConnectToWallet();
 
             isInitialized = true;
+        }
+
+        [PublicAPI]
+        public async UniTask TryConnectToWallet()
+        {
+            if (_walletConnectionUpdate.HasValue is false)
+                await CheckWalletStatus();
+            else
+                await TryReAuthorizeIfWalletChanged();
         }
 
         [PublicAPI]
         public async UniTask<bool> TryReAuthorizeIfWalletChanged()
         {
             if (isInitialized is false)
-            {
                 throw new Exception($"Please Initialize SessionManager using {nameof(InitializeAndAuthorize)} method");
-            }
+
+            var canBeWallet = CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
+
+            if (canBeWallet is false)
+                return false;
 
             Debug.Log($"[{nameof(SessionManager)}] Check if wallet connection has changed.");
             switch (_walletConnectionUpdate)
@@ -99,22 +110,19 @@ namespace ElympicsLobbyPackage.Session
             var gameName = config.GameName;
             var gameId = config.GameId;
             var versionName = config.GameVersion;
+#if UNITY_EDITOR || !UNITY_WEBGL
+            if (_externalCommunicator.ExternalAuthorizer is null)
+                throw new Exception($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthorizer)}");
+#endif
             var result = await _externalCommunicator.ExternalAuthorizer!.InitializationMessage(gameId, gameName, versionName);
             IsMobile = result.IsMobile;
             if (result.AuthData is not null)
             {
                 await AuthWithCached(result.AuthData, false, result);
+                return;
             }
             CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment);
             Debug.Log($"{nameof(SessionManager)} External message did not return authorization token. Using sdk to authenticate user.");
-        }
-
-        private async UniTask InitializeLoginWithWallet()
-        {
-            if (_walletConnectionUpdate.HasValue is false)
-                await CheckWalletStatus();
-            else
-                await TryReAuthorizeIfWalletChanged();
         }
 
         private async UniTask AuthorizeWithWallet()
@@ -177,7 +185,6 @@ namespace ElympicsLobbyPackage.Session
             }
         }
 
-        private void OnDisconnected(DisconnectionData obj) => CurrentSession = null;
         private void OnWalletDisconnected()
         {
             Debug.Log($"On Wallet connected");
@@ -249,8 +256,15 @@ namespace ElympicsLobbyPackage.Session
                     AuthType = AuthType.EthAddress,
                     Region = new RegionData(_region)
                 });
-                SaveNewAuthData();
-                CurrentSession = new SessionInfo(_lobby.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment);
+                if (_lobby.IsAuthenticated)
+                {
+                    SaveNewAuthData();
+                    CurrentSession = new SessionInfo(_lobby.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment);
+                }
+                else
+                {
+                    await AnonymousAuthorization();
+                }
             }
             catch (Exception e)
             {
