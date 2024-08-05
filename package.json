@@ -1,6 +1,6 @@
 {
   "name": "com.daftmobile.external-communicator",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Elympics External Communicator is an implementation of Elympics authorization and wallet communication",
   "displayName": "Elympics External Communicator",
   "unity": "2021.3",
