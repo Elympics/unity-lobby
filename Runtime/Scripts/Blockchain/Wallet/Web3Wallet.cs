@@ -40,10 +40,6 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
 		public async UniTask<string> ConnectWeb3()
 		{
 			var result = await _communicator.WalletCommunicator.Connect(ChainId);
-			if (result.chainId != ChainId.ToString())
-			{
-				throw new ChainIdMismatch(result.chainId, ChainId.ToString());
-			}
 			_address = result.address;
 			return _address;
 		}

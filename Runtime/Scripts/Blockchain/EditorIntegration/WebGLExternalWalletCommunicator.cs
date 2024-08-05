@@ -5,6 +5,7 @@ using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using ElympicsLobbyPackage.Blockchain.Communication;
+using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.Blockchain.Utils;
 using ElympicsLobbyPackage.ExternalCommunication;
 using SCS;
@@ -59,7 +60,14 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
 
         public UniTask<bool> IsWalletAvailable() => UniTask.FromResult(true);
 
-        public async UniTask<ConnectionResponse> Connect(BigInteger chainId) => await _communicator.SendRequestMessage<string, ConnectionResponse>(ReturnEventTypes.Connect, chainId.ToString());
+        public async UniTask<ConnectionResponse> Connect(BigInteger chainId)
+        {
+            var response = await _communicator.SendRequestMessage<string, ConnectionResponse>(ReturnEventTypes.Connect, chainId.ToString());
+            if (response.chainId != _currentConfig!.Value.chainId)
+                throw new ChainIdMismatch(response.chainId, _currentConfig!.Value.chainId);
+
+            return response;
+        }
         public async UniTask<string> GetBalance(string owner)
         {
             var parameters = new[]

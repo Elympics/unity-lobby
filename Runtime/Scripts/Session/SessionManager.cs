@@ -56,18 +56,11 @@ namespace ElympicsLobbyPackage.Session
             if (_lobby is { IsAuthenticated: true, WebSocketSession: { IsConnected: true } })
                 return;
 
-            await TryConnectToWallet();
+            Debug.Log($"[{nameof(SessionManager)}] Check player wallet connection.");
+            var address = await CheckWalletConnection();
+            await TryConnectToWalletOrAnonymous(address);
 
             isInitialized = true;
-        }
-
-        [PublicAPI]
-        public async UniTask TryConnectToWallet()
-        {
-            if (_walletConnectionUpdate.HasValue is false)
-                await CheckWalletStatus();
-            else
-                await TryReAuthorizeIfWalletChanged();
         }
 
         [PublicAPI]
@@ -101,6 +94,46 @@ namespace ElympicsLobbyPackage.Session
                     throw new ArgumentOutOfRangeException();
             }
             return false;
+        }
+
+        [PublicAPI]
+        public async UniTask ConnectToWallet()
+        {
+            var address = await CheckWalletConnection();
+            if (string.IsNullOrEmpty(address))
+                _externalCommunicator.WalletCommunicator!.ExternalShowConnectToWallet();
+            else
+                await TryConnectToWalletOrAnonymous(address);
+        }
+
+        private async UniTask TryConnectToWalletOrAnonymous(string walletAddress)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(walletAddress) is false)
+                    await AuthorizeWithWallet();
+                else
+                    await AnonymousAuthorization();
+            }
+            catch (ChainIdMismatch chainIdMismatch)
+            {
+                Debug.Log($"[{nameof(SessionManager)}] Chain Mismatch. {chainIdMismatch}");
+                _externalCommunicator!.WalletCommunicator!.ExternalShowChainSelection();
+            }
+            catch (ResponseException e)
+            {
+                if (e.Code == 404)
+                {
+                    Debug.Log($"[{nameof(SessionManager)}] Not authenticated no wallet address was found. {e}");
+                    await AnonymousAuthorization();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                Debug.Log($"[{nameof(SessionManager)}] Something went wrong. Going anonymous auth {e}");
+                await AnonymousAuthorization();
+            }
         }
 
         private async UniTask TryCheckExternalAuthorization()
@@ -309,37 +342,5 @@ namespace ElympicsLobbyPackage.Session
             return string.Empty;
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
-
-        private async UniTask CheckWalletStatus()
-        {
-            try
-            {
-                Debug.Log($"[{nameof(SessionManager)}] Check player wallet connection.");
-                var address = await CheckWalletConnection();
-                if (string.IsNullOrEmpty(address))
-                    await AnonymousAuthorization();
-                else
-                    await AuthorizeWithWallet();
-            }
-            catch (ChainIdMismatch chainIdMismatch)
-            {
-                Debug.Log($"[{nameof(SessionManager)}] Chain Mismatch. {chainIdMismatch}");
-                _externalCommunicator!.WalletCommunicator!.ExternalShowChainSelection();
-            }
-            catch (ResponseException e)
-            {
-                if (e.Code == 404)
-                {
-                    Debug.Log($"[{nameof(SessionManager)}] Not authenticated no wallet address was found. {e}");
-                    await AnonymousAuthorization();
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                Debug.Log($"[{nameof(SessionManager)}] Something went wrong. Going anonymous auth {e}");
-                await AnonymousAuthorization();
-            }
-        }
     }
 }
