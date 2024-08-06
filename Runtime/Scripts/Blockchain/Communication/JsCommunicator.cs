@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain.Communication
 {
+    [DefaultExecutionOrder(ExecutionOrders.JsCommunicator)]
     internal class JsCommunicator : MonoBehaviour, IJsCommunicatorRetriever
     {
         public event Action<string>? ResponseObjectReceived;

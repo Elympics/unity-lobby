@@ -11,8 +11,10 @@ GameObject:
   - component: {fileID: 773821390082990744}
   - component: {fileID: 773821390082990745}
   - component: {fileID: 773821390082990742}
+  - component: {fileID: -1970892285926819546}
+  - component: {fileID: 2308011412948500162}
   m_Layer: 0
-  m_Name: JsReceiver
+  m_Name: ExternalCommunicator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -58,3 +60,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scsConfig: {fileID: 11400000, guid: f0440800a09080d40bbaecbb64157d46, type: 2}
+--- !u!114 &-1970892285926819546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773821390082990743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e97d1006405763c4188e6caccf5c12a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 0}
+  _browserJsConfig: {fileID: 0}
+--- !u!114 &2308011412948500162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773821390082990743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d3528a65869f0041858ca5d49d5a376, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsMobile: 0
