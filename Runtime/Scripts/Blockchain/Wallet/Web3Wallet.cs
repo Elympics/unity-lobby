@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using ElympicsLobbyPackage.Blockchain.EditorIntegration;
 using ElympicsLobbyPackage.ExternalCommunication;
+using JetBrains.Annotations;
 using Nethereum.ABI;
 using SCS;
 using UnityEngine;
@@ -17,7 +18,9 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
     [DefaultExecutionOrder(ExecutionOrders.Web3Wallet)]
     public class Web3Wallet : ElympicsEthSigner, IWallet
     {
+        [PublicAPI]
         public event Action<WalletConnectionStatus>? WalletConnectionUpdated;
+        internal event Action<WalletConnectionStatus>? WalletConnectionUpdatedInternal;
         [SerializeField] private SmartContractServiceConfig config;
         [SerializeField] private StandaloneBrowserJsConfig _browserJsConfig;
         public override string Address => _address;
@@ -152,12 +155,14 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
                 return;
 
             _address = address;
+            WalletConnectionUpdatedInternal?.Invoke(WalletConnectionStatus.Connected);
             WalletConnectionUpdated?.Invoke(WalletConnectionStatus.Connected);
 
         }
         private void OnWalletDisconnected()
         {
             _address = null;
+            WalletConnectionUpdatedInternal?.Invoke(WalletConnectionStatus.Disconnected);
             WalletConnectionUpdated?.Invoke(WalletConnectionStatus.Disconnected);
         }
 

@@ -25,7 +25,7 @@ namespace ElympicsLobbyPackage.Session
 
         private string? _region;
         private ElympicsLobbyClient _lobby;
-        private Web3Wallet _wallet;
+        private Web3Wallet? _wallet;
         private AuthDataStorage _authDataStorage = new();
         private static bool isInitialized;
         private IExternalAuthenticator _externalAuthenticator;
@@ -35,7 +35,7 @@ namespace ElympicsLobbyPackage.Session
         {
             _lobby = ElympicsLobbyClient.Instance;
             _wallet = GetComponent<Web3Wallet>();
-            _wallet.WalletConnectionUpdated += OnWalletConnectionUpdated;
+            _wallet.WalletConnectionUpdatedInternal += OnWalletConnectionUpdated;
             _externalAuthenticator = ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         }
 
@@ -352,6 +352,12 @@ namespace ElympicsLobbyPackage.Session
                 return await _wallet!.ConnectWeb3();
             }
             return string.Empty;
+        }
+
+        private void OnDestroy()
+        {
+            if (_wallet is not null)
+                _wallet.WalletConnectionUpdatedInternal -= OnWalletConnectionUpdated;
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
     }
