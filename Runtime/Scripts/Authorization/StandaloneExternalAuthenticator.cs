@@ -5,10 +5,10 @@ using ElympicsLobbyPackage.Authorization;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
-	public class StandaloneExternalAuthorizer : IExternalAuthorizer
+	public class StandaloneExternalAuthenticator : IExternalAuthenticator
 	{
 		private readonly StandaloneExternalAuthorizerConfig _config;
-		public StandaloneExternalAuthorizer(StandaloneExternalAuthorizerConfig config)
+		public StandaloneExternalAuthenticator(StandaloneExternalAuthorizerConfig config)
 		{
 			_config = config;
 		}

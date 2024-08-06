@@ -4,11 +4,10 @@ using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
-using ElympicsLobbyPackage.Blockchain;
-using ElympicsLobbyPackage.Blockchain.Communication;
 using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.Blockchain.Wallet;
 using ElympicsLobbyPackage.DataStorage;
+using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.JWT;
 using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
@@ -17,76 +16,81 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage.Session
 {
-    public class SessionManager
+    [RequireComponent(typeof(Web3Wallet))]
+    [DefaultExecutionOrder(ExecutionOrders.SessionManager)]
+    public class SessionManager : MonoBehaviour
     {
         [PublicAPI]
         public SessionInfo? CurrentSession { get; private set; }
 
-        [PublicAPI]
-        public bool IsMobile;
-
         private string? _region;
-        private readonly ElympicsLobbyClient _lobby;
-        private readonly Web3Wallet _wallet;
-        private WalletConnectionStatus? _walletConnectionUpdate;
-        private readonly AuthDataStorage _authDataStorage = new();
+        private ElympicsLobbyClient _lobby;
+        private Web3Wallet? _wallet;
+        private AuthDataStorage _authDataStorage = new();
         private static bool isInitialized;
-        private ElympicsExternalCommunicator _externalCommunicator;
+        private IExternalAuthenticator _externalAuthenticator;
+        private WalletConnectionStatus? _walletConnectionUpdate;
 
-        public SessionManager(ElympicsLobbyClient lobby, Web3Wallet wallet, ElympicsExternalCommunicator externalCommunicator)
+        private void Awake()
         {
-            _lobby = lobby;
-            _wallet = wallet;
-            _externalCommunicator = externalCommunicator;
-            externalCommunicator!.WalletCommunicator!.WalletDisconnected += OnWalletConnected;
-            externalCommunicator.WalletCommunicator.WalletDisconnected += OnWalletDisconnected;
+            _lobby = ElympicsLobbyClient.Instance;
+            _wallet = GetComponent<Web3Wallet>();
+            _wallet.WalletConnectionUpdatedInternal += OnWalletConnectionUpdated;
+            _externalAuthenticator = ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         }
 
         [PublicAPI]
-        public async UniTask InitializeAndAuthorize()
+        public async UniTask AuthenticateFromExternalAndConnect()
         {
-
             if (isInitialized is false)
             {
                 var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(ElympicsRegions.AllAvailableRegions);
                 _region = closestRegion.Region;
-                await TryCheckExternalAuthorization();
+                await TryCheckExternalAuthentication();
             }
 
             if (_lobby is { IsAuthenticated: true, WebSocketSession: { IsConnected: true } })
                 return;
 
             Debug.Log($"[{nameof(SessionManager)}] Check player wallet connection.");
-            var address = await CheckWalletConnection();
-            await TryConnectToWalletOrAnonymous(address);
 
-            isInitialized = true;
+            try
+            {
+                var address = await CheckWalletConnection();
+                await TryConnectToWalletOrAnonymous(address);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                await AnonymousAuthentication();
+            }
+            finally
+            {
+                isInitialized = true;
+            }
         }
 
         [PublicAPI]
-        public async UniTask<bool> TryReAuthorizeIfWalletChanged()
+        public async UniTask<bool> TryReAuthenticateIfWalletChanged()
         {
             if (isInitialized is false)
-                throw new Exception($"Please Initialize SessionManager using {nameof(InitializeAndAuthorize)} method");
+                throw new Exception($"Please Initialize SessionManager using {nameof(AuthenticateFromExternalAndConnect)} method");
 
-            var canBeWallet = CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
-
-            if (canBeWallet is false)
+            if (IsWalletEligible() is false)
                 return false;
 
             Debug.Log($"[{nameof(SessionManager)}] Check if wallet connection has changed.");
             switch (_walletConnectionUpdate)
             {
-                case WalletConnectionStatus.Reconnected:
                 case WalletConnectionStatus.Connected:
                     Debug.Log($"[{nameof(SessionManager)}] Already authenticated but wallet address has changed.");
                     _walletConnectionUpdate = null;
-                    await AuthorizeWithWallet();
+                    await WalletAuthentication();
                     return true;
                 case WalletConnectionStatus.Disconnected:
                     Debug.Log($"[{nameof(SessionManager)}] Already authenticated but wallet has been disconnected.");
                     _walletConnectionUpdate = null;
-                    await AnonymousAuthorization();
+                    await AnonymousAuthentication();
                     return true;
                 case null:
                     break;
@@ -96,14 +100,32 @@ namespace ElympicsLobbyPackage.Session
             return false;
         }
 
+        private void OnWalletConnectionUpdated(WalletConnectionStatus status)
+        {
+            Debug.Log($"Wallet connection status changed to: {status}");
+            _walletConnectionUpdate = status;
+        }
+
         [PublicAPI]
         public async UniTask ConnectToWallet()
         {
-            var address = await CheckWalletConnection();
-            if (string.IsNullOrEmpty(address))
-                _externalCommunicator.WalletCommunicator!.ExternalShowConnectToWallet();
-            else
-                await TryConnectToWalletOrAnonymous(address);
+            try
+            {
+                var address = await CheckWalletConnection();
+                if (string.IsNullOrEmpty(address))
+                    _wallet.ExternalShowConnectToWallet();
+                else
+                    await TryConnectToWalletOrAnonymous(address);
+            }
+            catch (ResponseException e)
+            {
+                _wallet.ExternalShowConnectToWallet();
+            }
+            catch (ChainIdMismatch chainIdMismatch)
+            {
+                Debug.Log($"[{nameof(SessionManager)}] Chain Mismatch. {chainIdMismatch}");
+                _wallet.ExternalShowChainSelection();
+            }
         }
 
         private async UniTask TryConnectToWalletOrAnonymous(string walletAddress)
@@ -111,54 +133,40 @@ namespace ElympicsLobbyPackage.Session
             try
             {
                 if (string.IsNullOrEmpty(walletAddress) is false)
-                    await AuthorizeWithWallet();
+                    await WalletAuthentication();
                 else
-                    await AnonymousAuthorization();
-            }
-            catch (ChainIdMismatch chainIdMismatch)
-            {
-                Debug.Log($"[{nameof(SessionManager)}] Chain Mismatch. {chainIdMismatch}");
-                _externalCommunicator!.WalletCommunicator!.ExternalShowChainSelection();
-            }
-            catch (ResponseException e)
-            {
-                if (e.Code == 404)
-                {
-                    Debug.Log($"[{nameof(SessionManager)}] Not authenticated no wallet address was found. {e}");
-                    await AnonymousAuthorization();
-                }
+                    await AnonymousAuthentication();
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
                 Debug.Log($"[{nameof(SessionManager)}] Something went wrong. Going anonymous auth {e}");
-                await AnonymousAuthorization();
+                await AnonymousAuthentication();
             }
         }
 
-        private async UniTask TryCheckExternalAuthorization()
+        private async UniTask TryCheckExternalAuthentication()
         {
-            Debug.Log($"{nameof(SessionManager)} Check external authorization.");
+            Debug.Log($"{nameof(SessionManager)} Check external authentication.");
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
             var gameName = config.GameName;
             var gameId = config.GameId;
             var versionName = config.GameVersion;
 #if UNITY_EDITOR || !UNITY_WEBGL
-            if (_externalCommunicator.ExternalAuthorizer is null)
-                throw new Exception($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthorizer)}");
+            if (_externalAuthenticator is null)
+                throw new Exception($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthenticator)}");
 #endif
-            var result = await _externalCommunicator.ExternalAuthorizer!.InitializationMessage(gameId, gameName, versionName);
-            IsMobile = result.IsMobile;
+            var result = await _externalAuthenticator.InitializationMessage(gameId, gameName, versionName);
             if (result.AuthData is not null)
             {
                 await AuthWithCached(result.AuthData, false, result);
                 return;
             }
-            CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment);
-            Debug.Log($"{nameof(SessionManager)} External message did not return authorization token. Using sdk to authenticate user.");
+            CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment, result.IsMobile);
+            Debug.Log($"{nameof(SessionManager)} External message did not return auth token. Using sdk to authenticate user.");
         }
 
-        private async UniTask AuthorizeWithWallet()
+        private async UniTask WalletAuthentication()
         {
             try
             {
@@ -200,7 +208,7 @@ namespace ElympicsLobbyPackage.Session
             catch (Exception e)
             {
                 Debug.LogException(e);
-                await AnonymousAuthorization();
+                await AnonymousAuthentication();
             }
             await UniTask.CompletedTask;
         }
@@ -218,15 +226,18 @@ namespace ElympicsLobbyPackage.Session
             }
         }
 
+        private void OnWalletConnected(string publicAddress, string chainId)
+        {
+            Debug.Log($"On Wallet connected");
+            if (publicAddress == _wallet.Address)
+                return;
+            _walletConnectionUpdate = WalletConnectionStatus.Connected;
+        }
+
         private void OnWalletDisconnected()
         {
             Debug.Log($"On Wallet connected");
             _walletConnectionUpdate = WalletConnectionStatus.Disconnected;
-        }
-        private void OnWalletConnected()
-        {
-            Debug.Log($"On Wallet connected");
-            _walletConnectionUpdate = WalletConnectionStatus.Connected;
         }
 
         private bool IsTokenValid(ElympicsJwt token)
@@ -270,12 +281,13 @@ namespace ElympicsLobbyPackage.Session
                 }
                 var capa = external?.Capabilities ?? CurrentSession!.Value.Capabilities;
                 var enviro = external?.Environment ?? CurrentSession!.Value.Environment;
-                CurrentSession = new SessionInfo(_lobby.AuthData, accountWallet, signWallet, capa, enviro);
+                var isMobile = external?.IsMobile ?? CurrentSession!.Value.IsMobile;
+                CurrentSession = new SessionInfo(_lobby.AuthData, accountWallet, signWallet, capa, enviro, isMobile);
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
-                await AnonymousAuthorization();
+                await AnonymousAuthentication();
             }
         }
 
@@ -292,25 +304,25 @@ namespace ElympicsLobbyPackage.Session
                 if (_lobby.IsAuthenticated)
                 {
                     SaveNewAuthData();
-                    CurrentSession = new SessionInfo(_lobby.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment);
+                    CurrentSession = new SessionInfo(_lobby.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile);
                 }
                 else
                 {
-                    await AnonymousAuthorization();
+                    await AnonymousAuthentication();
                 }
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
-                await AnonymousAuthorization();
+                await AnonymousAuthentication();
             }
         }
 
-        private async UniTask AnonymousAuthorization()
+        private async UniTask AnonymousAuthentication()
         {
             if (_lobby.AuthData?.AuthType is AuthType.ClientSecret)
             {
-                Debug.Log("We are already client.");
+                Debug.Log($"Already authenticated as {AuthType.ClientSecret}.");
                 return;
             }
             try
@@ -325,7 +337,7 @@ namespace ElympicsLobbyPackage.Session
                     AuthType = AuthType.ClientSecret,
                     Region = new RegionData(_region)
                 });
-                CurrentSession = new SessionInfo(_lobby.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment);
+                CurrentSession = new SessionInfo(_lobby.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile);
             }
             catch (Exception e)
             {
@@ -340,6 +352,12 @@ namespace ElympicsLobbyPackage.Session
                 return await _wallet!.ConnectWeb3();
             }
             return string.Empty;
+        }
+
+        private void OnDestroy()
+        {
+            if (_wallet is not null)
+                _wallet.WalletConnectionUpdatedInternal -= OnWalletConnectionUpdated;
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
     }

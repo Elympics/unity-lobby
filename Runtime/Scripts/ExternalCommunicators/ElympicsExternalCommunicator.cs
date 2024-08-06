@@ -11,13 +11,14 @@ using UnityEngine;
 namespace ElympicsLobbyPackage
 {
     [RequireComponent(typeof(JsCommunicator))]
+    [DefaultExecutionOrder(ExecutionOrders.ExternalCommunicator)]
     public class ElympicsExternalCommunicator : MonoBehaviour
     {
         [PublicAPI]
         public static ElympicsExternalCommunicator? Instance;
 
         [PublicAPI]
-        public IExternalAuthorizer? ExternalAuthorizer;
+        public IExternalAuthenticator? ExternalAuthenticator;
 
         [PublicAPI]
         public IExternalWalletCommunicator? WalletCommunicator;
@@ -48,7 +49,7 @@ namespace ElympicsLobbyPackage
 
 #if UNITY_EDITOR || !UNITY_WEBGL
         [PublicAPI]
-        public void SetCustomExternalAuthorizer(IExternalAuthorizer customExternalAuthorizer) => ExternalAuthorizer = customExternalAuthorizer ?? throw new ArgumentNullException(nameof(customExternalAuthorizer));
+        public void SetCustomExternalAuthenticator(IExternalAuthenticator customExternalAuthenticator) => ExternalAuthenticator = customExternalAuthenticator ?? throw new ArgumentNullException(nameof(customExternalAuthenticator));
         [PublicAPI]
         public void SetCustomExternalWalletCommunicator(IExternalWalletCommunicator customExternalWalletCommunicator) => WalletCommunicator = customExternalWalletCommunicator ?? throw new ArgumentNullException(nameof(customExternalWalletCommunicator));
         [PublicAPI]

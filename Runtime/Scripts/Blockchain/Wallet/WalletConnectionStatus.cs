@@ -4,6 +4,5 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
 	{
 		Disconnected = 0,
 		Connected = 1,
-		Reconnected = 2,
 	}
 }
