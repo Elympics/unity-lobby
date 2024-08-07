@@ -16,6 +16,6 @@
     "networking"
   ],
   "dependencies": {
-    "com.daftmobile.elympics": "https://github.com/Elympics/Unity-SDK.git#v.0.11.0"
+    "com.daftmobile.elympics": "https://github.com/Elympics/Unity-SDK.git#v0.11.0"
   }
 }
