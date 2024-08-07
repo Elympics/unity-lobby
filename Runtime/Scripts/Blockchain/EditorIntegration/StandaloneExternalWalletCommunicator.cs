@@ -16,6 +16,7 @@ using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using ElympicsLobbyPackage.Blockchain.Utils;
 using ElympicsLobbyPackage.ExternalCommunication;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
 using Nethereum.Hex.HexConvertors.Extensions;
 using SCS;
 
@@ -23,9 +24,6 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
 {
 	public class StandaloneExternalWalletCommunicator : IExternalWalletCommunicator
 	{
-		public event Action<string, string>? WalletConnected;
-        public event Action? WalletDisconnected;
-
 		private EthECKey _key;
 		private IWeb3 _web3;
 		private Account _account;
@@ -43,7 +41,9 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
 			{ 11155111, "https://ethereum-sepolia.publicnode.com" },
 		};
 
-		public StandaloneExternalWalletCommunicator(StandaloneBrowserJsConfig standaloneBrowserJsConfig, SmartContractService scs)
+        private IWalletConnectionListener _connectionListener;
+
+        public StandaloneExternalWalletCommunicator(StandaloneBrowserJsConfig standaloneBrowserJsConfig, SmartContractService scs)
 		{
 			_config = standaloneBrowserJsConfig;
 			_scs = scs;
@@ -113,8 +113,9 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         {
             Debug.Log("Show Account Info Window.");
         }
+        void IExternalWalletCommunicator.SetWalletConnectionListener(IWalletConnectionListener listener) => _connectionListener = listener;
 
-		private async UniTask<string> SendSignedTransaction(string signedData)
+        private async UniTask<string> SendSignedTransaction(string signedData)
 		{
 			if (!_config.ShouldSendTransactions)
 				throw new Exception("ERROR:Transaction sending failed");

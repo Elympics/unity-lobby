@@ -1,0 +1,26 @@
+{
+    "name": "ElympicsLobby.Tests.PlayMode",
+    "rootNamespace": "ElympicsLobby.Tests.PlayMode",
+    "references": [
+        "GUID:42097347dcde8e94b9982a255d4fed9c",
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:98c20d83c9beb3344bdbd3db8ff8d852",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:28068bcda4e3441d898fa2dcbc30ac45"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "NSubstitute.dll",
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

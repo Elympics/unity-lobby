@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 773821390082990742}
   - component: {fileID: -1970892285926819546}
   - component: {fileID: 2308011412948500162}
+  - component: {fileID: 7616533121664948154}
   m_Layer: 0
   m_Name: ExternalCommunicator
   m_TagString: Untagged
@@ -59,7 +60,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a3c639019a65bb43b058fc6e5ef52f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scsConfig: {fileID: 11400000, guid: f0440800a09080d40bbaecbb64157d46, type: 2}
+  scsConfig: {fileID: 0}
+  standaloneAuthConfig: {fileID: 0}
 --- !u!114 &-1970892285926819546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -86,4 +88,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d3528a65869f0041858ca5d49d5a376, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsMobile: 0
+--- !u!114 &7616533121664948154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773821390082990743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a17e61a6b14d57419a5a78f40ffe863, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 0}
