@@ -23,6 +23,8 @@ namespace ElympicsLobbyPackage.Session
         [PublicAPI]
         public SessionInfo? CurrentSession { get; private set; }
 
+        [SerializeField] private string? fallbackRegion;
+
         private string? _region;
         private ElympicsLobbyClient _lobby;
         private Web3Wallet? _wallet;
@@ -44,8 +46,16 @@ namespace ElympicsLobbyPackage.Session
         {
             if (isInitialized is false)
             {
-                var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(ElympicsRegions.AllAvailableRegions);
-                _region = closestRegion.Region;
+                try
+                {
+                    var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(ElympicsRegions.AllAvailableRegions);
+                    _region = closestRegion.Region;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    _region = fallbackRegion;
+                }
                 await TryCheckExternalAuthentication();
             }
 
