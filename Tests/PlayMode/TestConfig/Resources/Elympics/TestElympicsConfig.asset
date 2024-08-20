@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3cbda3b6548e73a4abba8ab9879eefe1, type: 3}
-  m_Name: ElympicsConfig
+  m_Name: TestElympicsConfig
   m_EditorClassIdentifier: 
   elympicsWebEndpoint: https://api.elympics.cc
   elympicsGameServersEndpoint: https://gs.elympics.cc
