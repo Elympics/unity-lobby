@@ -29,7 +29,7 @@ namespace ElympicsLobbyPackage.Session
         private ElympicsLobbyClient _lobby;
         private Web3Wallet? _wallet;
         private AuthDataStorage _authDataStorage = new();
-        private static bool isInitialized;
+        private bool _isInitialized;
         private IExternalAuthenticator _externalAuthenticator => ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         private WalletConnectionStatus? _walletConnectionUpdate;
 
@@ -43,7 +43,7 @@ namespace ElympicsLobbyPackage.Session
         [PublicAPI]
         public async UniTask AuthenticateFromExternalAndConnect()
         {
-            if (isInitialized is false)
+            if (_isInitialized is false)
             {
                 try
                 {
@@ -75,14 +75,14 @@ namespace ElympicsLobbyPackage.Session
             }
             finally
             {
-                isInitialized = true;
+                _isInitialized = true;
             }
         }
 
         [PublicAPI]
         public async UniTask<bool> TryReAuthenticateIfWalletChanged()
         {
-            if (isInitialized is false)
+            if (_isInitialized is false)
                 throw new Exception($"Please Initialize SessionManager using {nameof(AuthenticateFromExternalAndConnect)} method");
 
             if (IsWalletEligible() is false)
@@ -367,13 +367,13 @@ namespace ElympicsLobbyPackage.Session
         {
             if (_wallet is not null)
                 _wallet.WalletConnectionUpdatedInternal -= OnWalletConnectionUpdated;
-            isInitialized = false;
+            _isInitialized = false;
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
 
         internal void Reset()
         {
-            isInitialized = false;
+            _isInitialized = false;
             CurrentSession = null;
             _authDataStorage.Clear();
         }
