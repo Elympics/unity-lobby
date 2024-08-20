@@ -9,12 +9,12 @@ namespace ElympicsLobbyPackage.Authorization
 		public readonly Capabilities Capabilities;
 		public readonly string Environment;
 
-		public ExternalAuthData(AuthData? authData, bool isMobile, Capabilities capabilities, string enviroment)
+		public ExternalAuthData(AuthData? authData, bool isMobile, Capabilities capabilities, string environment)
 		{
 			AuthData = authData;
 			IsMobile = isMobile;
 			Capabilities = capabilities;
-			Environment = enviroment;
+			Environment = environment;
 		}
 	}
 }

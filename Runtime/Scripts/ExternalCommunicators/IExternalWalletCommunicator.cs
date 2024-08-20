@@ -3,13 +3,12 @@ using System;
 using System.Numerics;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
     public interface IExternalWalletCommunicator: IDisposable
     {
-        public event Action<string, string> WalletConnected;
-        public event Action WalletDisconnected;
         public UniTask<string> SignMessage<TInput>(string address, TInput message);
         public UniTask<ConnectionResponse> Connect(BigInteger chainId);
         public UniTask<string> GetBalance(string owner);
@@ -20,5 +19,6 @@ namespace ElympicsLobbyPackage.ExternalCommunication
         public void ExternalShowChainSelection();
         public void ExternalShowConnectToWallet();
         public void ExternalShowAccountInfo();
+        public void SetWalletConnectionListener(IWalletConnectionListener listener);
     }
 }
