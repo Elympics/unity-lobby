@@ -30,7 +30,7 @@ namespace ElympicsLobbyPackage.Session
         private Web3Wallet? _wallet;
         private AuthDataStorage _authDataStorage = new();
         private static bool isInitialized;
-        private IExternalAuthenticator _externalAuthenticator;
+        private IExternalAuthenticator _externalAuthenticator => ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         private WalletConnectionStatus? _walletConnectionUpdate;
 
         private void Awake()
@@ -38,7 +38,6 @@ namespace ElympicsLobbyPackage.Session
             _lobby = ElympicsLobbyClient.Instance;
             _wallet = GetComponent<Web3Wallet>();
             _wallet.WalletConnectionUpdatedInternal += OnWalletConnectionUpdated;
-            _externalAuthenticator = ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         }
 
         [PublicAPI]
@@ -180,7 +179,7 @@ namespace ElympicsLobbyPackage.Session
         {
             try
             {
-                if (CurrentSession is not null)
+                if (_lobby.IsAuthenticated)
                 {
                     _lobby.SignOut();
                 }
@@ -195,7 +194,7 @@ namespace ElympicsLobbyPackage.Session
                     var tokenAsString = JsonWebToken.Decode(savedAuthData.JwtToken, "", false);
                     if (string.IsNullOrEmpty(tokenAsString))
                     {
-                        Debug.Log("[Lobby] found token was invalid. Forcing re-authentication.");
+                        Debug.Log("[SessionManager] found token was invalid. Forcing re-authentication.");
                         await AuthWithEth();
                         return;
                     }
@@ -205,12 +204,12 @@ namespace ElympicsLobbyPackage.Session
                     if (!isValid
                         || !isMatching)
                     {
-                        Debug.Log("[Lobby] found token was invalid. Forcing re-authentication.");
+                        Debug.Log("[SessionManager] found token was invalid. Forcing re-authentication.");
                         await AuthWithEth();
                         return;
                     }
 
-                    Debug.Log("[Lobby] found matching cached token. Reusing value confirmed!");
+                    Debug.Log("[SessionManager] found matching cached token. Reusing value confirmed!");
                     await AuthWithCached(savedAuthData, true, null);
                     SaveNewAuthData();
                 }
@@ -368,7 +367,15 @@ namespace ElympicsLobbyPackage.Session
         {
             if (_wallet is not null)
                 _wallet.WalletConnectionUpdatedInternal -= OnWalletConnectionUpdated;
+            isInitialized = false;
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
+
+        internal void Reset()
+        {
+            isInitialized = false;
+            CurrentSession = null;
+            _authDataStorage.Clear();
+        }
     }
 }

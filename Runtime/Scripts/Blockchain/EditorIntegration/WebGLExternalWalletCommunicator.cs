@@ -8,6 +8,7 @@ using ElympicsLobbyPackage.Blockchain.Communication;
 using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.Blockchain.Utils;
 using ElympicsLobbyPackage.ExternalCommunication;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
 using SCS;
 using UnityEngine;
 using TransactionToSign = ElympicsLobbyPackage.Blockchain.Communication.DTO.TransactionToSign;
@@ -17,14 +18,12 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
     // ReSharper disable once ClassNeverInstantiated.Global
     internal class WebGLExternalWalletCommunicator : IExternalWalletCommunicator
     {
-        public event Action<string, string>? WalletConnected;
-        public event Action? WalletDisconnected;
-
         private SmartContract.SmartContract TokenContract => SmartContract.SmartContract.ConvertFrom(_currentConfig!.Value.GetSmartContract(SmartContractType.ERC20Token));
         private SmartContract.SmartContract TrustContract => SmartContract.SmartContract.ConvertFrom(_currentConfig!.Value.GetSmartContract(SmartContractType.SecurityDeposit));
 
         private readonly JsCommunicator _communicator;
         private ChainConfig? _currentConfig;
+        private IWalletConnectionListener _connectionListener;
         public WebGLExternalWalletCommunicator(JsCommunicator jsCommunicator, SmartContractServiceConfig scsConfig)
         {
             _communicator = jsCommunicator;
@@ -51,9 +50,9 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         {
             var walletConnectedData = JsonUtility.FromJson<WalletConnectionMessage>(webMessageMessage);
             if (walletConnectedData.isConnected)
-                WalletConnected?.Invoke(walletConnectedData.address, walletConnectedData.chainId);
+                _connectionListener.OnWalletConnected(walletConnectedData.address,walletConnectedData.chainId);
             else
-                WalletDisconnected?.Invoke();
+                _connectionListener.OnWalletDisconnected();
         }
 
         public async UniTask<string> SignMessage<TInput>(string address, TInput message) => await _communicator.SendRequestMessage<TInput, string>(ReturnEventTypes.SignTypedData, message);
@@ -110,6 +109,7 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         public void ExternalShowChainSelection() => _communicator.SendVoidMessage(VoidEventTypes.ShowChainSelectionUI, string.Empty);
         public void ExternalShowConnectToWallet() => _communicator.SendVoidMessage(VoidEventTypes.ShowConnectToWallet, string.Empty);
         public void ExternalShowAccountInfo() => _communicator.SendVoidMessage(VoidEventTypes.ShowAccountUI, string.Empty);
+        void IExternalWalletCommunicator.SetWalletConnectionListener(IWalletConnectionListener listener) => _connectionListener = listener;
 
         internal async UniTask<InitializationResponse> SendInitializationMessage(InitializationMessage message) => await _communicator.SendRequestMessage<InitializationMessage, InitializationResponse>(ReturnEventTypes.Handshake, message);
         public async UniTask<string> SendTransaction(string address, string to, string from, string data)
