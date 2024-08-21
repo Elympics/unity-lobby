@@ -11,7 +11,6 @@ using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.JWT;
 using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
-using Nethereum.Unity.Rpc;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -34,7 +33,7 @@ namespace ElympicsLobbyPackage.Session
         private IExternalAuthenticator _externalAuthenticator => ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         private WalletConnectionStatus? _walletConnectionUpdate;
 
-        private void Awake()
+        private void Start()
         {
             _lobby = ElympicsLobbyClient.Instance;
             _wallet = GetComponent<Web3Wallet>();
@@ -305,7 +304,7 @@ namespace ElympicsLobbyPackage.Session
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                Debug.LogWarning($"Couldn't login using cached data. Logging as guest. Reason: {Environment.NewLine} {e.Message}");
                 await AnonymousAuthentication();
             }
         }
@@ -332,7 +331,7 @@ namespace ElympicsLobbyPackage.Session
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                Debug.LogWarning($"Couldn't login using EthAddress. Logging as guest. Reason: {Environment.NewLine} {e.Message}");
                 await AnonymousAuthentication();
             }
         }
@@ -366,9 +365,17 @@ namespace ElympicsLobbyPackage.Session
 
         private async UniTask<string> CheckWalletConnection()
         {
-            if (IsWalletEligible())
+            if (IsWalletEligible() is false)
+                return string.Empty;
+
+            try
             {
                 return await _wallet!.ConnectWeb3();
+            }
+            catch (ResponseException e)
+            {
+                if (e.Code == 404)
+                    return string.Empty;
             }
             return string.Empty;
         }

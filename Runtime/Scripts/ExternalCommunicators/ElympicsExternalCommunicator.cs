@@ -56,6 +56,7 @@ namespace ElympicsLobbyPackage
                 WalletCommunicator = new StandaloneExternalWalletCommunicator(standaloneWalletConfig, GetComponent<SmartContractService>());
 #endif
                 Instance = this;
+                WalletCommunicator.SetWalletConnectionListener(this);
             }
             else
                 Destroy(gameObject);

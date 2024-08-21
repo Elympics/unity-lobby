@@ -32,9 +32,9 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         private void Awake()
         {
             _scs = GetComponent<SmartContractService>();
-            ElympicsExternalCommunicator.Instance.WalletConnected += OnWalletConnected;
-            ElympicsExternalCommunicator.Instance.WalletDisconnected += OnWalletDisconnected;
         }
+
+        private void Start() => Subscribe();
 
         public async UniTask<string> ConnectWeb3()
         {
@@ -159,6 +159,18 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
 
         private void OnDestroy()
         {
+            UnSubscribe();
+        }
+
+        private void Subscribe()
+        {
+
+            ElympicsExternalCommunicator.Instance.WalletConnected += OnWalletConnected;
+            ElympicsExternalCommunicator.Instance.WalletDisconnected += OnWalletDisconnected;
+        }
+        private void UnSubscribe()
+        {
+
             ElympicsExternalCommunicator.Instance.WalletConnected -= OnWalletConnected;
             ElympicsExternalCommunicator.Instance.WalletDisconnected -= OnWalletDisconnected;
         }
