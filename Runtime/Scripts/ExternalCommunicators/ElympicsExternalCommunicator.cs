@@ -42,10 +42,10 @@ namespace ElympicsLobbyPackage
         private JsCommunicator _jsCommunicator = null!;
         private void Awake()
         {
-            if (Instance is null)
+            if (Instance == null)
             {
                 _jsCommunicator = GetComponent<JsCommunicator>();
-                if (_jsCommunicator is null)
+                if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find JsCommunicator component on gameObject {gameObject.name}");
 #if UNITY_WEBGL && !UNITY_EDITOR
             ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator);
