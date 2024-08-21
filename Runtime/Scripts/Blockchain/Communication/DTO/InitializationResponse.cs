@@ -11,7 +11,8 @@ namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
 		public string device;
 		public string environment;
 		public int capabilities;
-	}
+        public string closestRegion;
+    }
 
 	[Serializable]
 	public struct AuthDataRaw

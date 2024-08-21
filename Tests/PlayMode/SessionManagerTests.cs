@@ -34,6 +34,7 @@ namespace ElympicsLobby.Tests.PlayMode
         private string _defaultEnvironment = EnvironmentNames.Development;
         private string _walletAddress = "walletAddress";
         private string _chainId = "11155111";
+        private string _defaultClosestRegion = "warsaw";
         private ElympicsLobbyClient _lobby;
 
         private const string FakeJwt = @"{
@@ -68,7 +69,7 @@ namespace ElympicsLobby.Tests.PlayMode
         public IEnumerator AuthenticateFromExternalAndConnect_ClientSecret() => UniTask.ToCoroutine(async () =>
         {
             _communicator.MockExternalWalletCommunicatorAndSet(string.Empty, string.Empty);
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
             var currSess = _sut.CurrentSession.Value;
@@ -80,12 +81,13 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsNull(currSess.SignWallet);
             Assert.IsTrue(_lobby.IsAuthenticated);
             Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion, _lobby.CurrentRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateFromExternalAndConnect_Eth() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -96,6 +98,7 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
             Assert.IsTrue(_lobby.IsAuthenticated);
             Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion, _lobby.CurrentRegion);
         });
 
         [UnityTest]
@@ -103,7 +106,7 @@ namespace ElympicsLobby.Tests.PlayMode
         {
             var jwt = EncodeJwtFromJson(FakeJwt);
             var auth = new AuthData(UserId, jwt, Nickname, AuthType.Telegram);
-            _communicator.MockIExternalAuthenticatorAndSet(auth, Capabilities.Telegram, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(auth, Capabilities.Telegram, _defaultEnvironment, _defaultClosestRegion);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
             var currSess = _sut.CurrentSession.Value;
@@ -113,12 +116,13 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
             Assert.IsTrue(_lobby.IsAuthenticated);
             Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion, _lobby.CurrentRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateFromExternalAndConnect_ClientSecret_NoEthCapabilities() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Guest, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Guest, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -129,12 +133,13 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
             Assert.IsTrue(_lobby.IsAuthenticated);
             Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion, _lobby.CurrentRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateAsEth_GetWalletDisconnectEvent_BecomeSecret() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorWithDisconnectionAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -150,12 +155,13 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
             Assert.IsTrue(_lobby.IsAuthenticated);
             Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion, _lobby.CurrentRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateAsClient_GetWalletConnectedEvent_BecomeEth() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorWithConnectedAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -171,6 +177,7 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.EthAddress == currSess.AuthData.AuthType);
             Assert.IsTrue(_lobby.IsAuthenticated);
             Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion, _lobby.CurrentRegion);
         });
 
         private static string EncodeJwtFromJson(string json)

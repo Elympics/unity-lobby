@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
@@ -47,16 +48,6 @@ namespace ElympicsLobbyPackage.Session
             {
                 try
                 {
-                    var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(ElympicsRegions.AllAvailableRegions);
-                    _region = closestRegion.Region;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    _region = fallbackRegion;
-                }
-                try
-                {
                     await TryCheckExternalAuthentication();
                 }
                 catch (Exception e)
@@ -85,6 +76,19 @@ namespace ElympicsLobbyPackage.Session
             {
                 Debug.LogException(e);
                 await AnonymousAuthentication();
+            }
+        }
+        private static async UniTask<string> FindClosestRegion()
+        {
+            try
+            {
+                var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(ElympicsRegions.AllAvailableRegions);
+                return closestRegion.Region;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return string.Empty;
             }
         }
 
@@ -175,6 +179,9 @@ namespace ElympicsLobbyPackage.Session
                 throw new Exception($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthenticator)}");
 #endif
             var result = await _externalAuthenticator.InitializationMessage(gameId, gameName, versionName);
+
+            await SetClosestRegion(result.ClosestRegion);
+
             if (result.AuthData is not null)
             {
                 await AuthWithCached(result.AuthData, false, result);
@@ -182,6 +189,17 @@ namespace ElympicsLobbyPackage.Session
             }
             CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment, result.IsMobile);
             Debug.Log($"{nameof(SessionManager)} External message did not return auth token. Using sdk to authenticate user.");
+        }
+        private async UniTask SetClosestRegion(string externalClosestRegion)
+        {
+            if (string.IsNullOrEmpty(externalClosestRegion))
+            {
+                var closestRegion = await FindClosestRegion();
+                _region = string.IsNullOrEmpty(closestRegion) ? fallbackRegion : closestRegion;
+
+            }
+            else
+                _region = externalClosestRegion;
         }
 
         private async UniTask WalletAuthentication()
@@ -359,7 +377,13 @@ namespace ElympicsLobbyPackage.Session
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                CurrentSession = null;
+
+                if (!_lobby.IsAuthenticated)
+                    throw;
+
+                _lobby.SignOut();;
+                throw;
             }
         }
 

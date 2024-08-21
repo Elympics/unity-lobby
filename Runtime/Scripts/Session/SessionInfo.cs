@@ -8,14 +8,14 @@ namespace ElympicsLobbyPackage.Session
     [PublicAPI]
     public readonly struct SessionInfo
     {
-        public readonly AuthData AuthData;
+        public readonly AuthData? AuthData;
         public readonly string? AccountWallet;
         public readonly string? SignWallet;
         public readonly Capabilities Capabilities;
         public readonly string Environment;
         public readonly bool IsMobile;
 
-        public SessionInfo(AuthData authData, string? accountWallet, string? signWallet, Capabilities capabilities, string environment,
+        public SessionInfo(AuthData? authData, string? accountWallet, string? signWallet, Capabilities capabilities, string environment,
             bool isMobile)
         {
             AuthData = authData;
