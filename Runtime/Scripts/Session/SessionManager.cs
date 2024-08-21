@@ -11,6 +11,7 @@ using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.JWT;
 using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
+using Nethereum.Unity.Rpc;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -25,11 +26,11 @@ namespace ElympicsLobbyPackage.Session
 
         [SerializeField] private string? fallbackRegion;
 
+        private static SessionManager? Instance;
         private string? _region;
         private ElympicsLobbyClient _lobby;
         private Web3Wallet? _wallet;
         private AuthDataStorage _authDataStorage = new();
-        private bool _isInitialized;
         private IExternalAuthenticator _externalAuthenticator => ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         private WalletConnectionStatus? _walletConnectionUpdate;
 
@@ -43,7 +44,7 @@ namespace ElympicsLobbyPackage.Session
         [PublicAPI]
         public async UniTask AuthenticateFromExternalAndConnect()
         {
-            if (_isInitialized is false)
+            if (Instance == null)
             {
                 try
                 {
@@ -55,8 +56,21 @@ namespace ElympicsLobbyPackage.Session
                     Debug.LogException(e);
                     _region = fallbackRegion;
                 }
-                await TryCheckExternalAuthentication();
+                try
+                {
+                    await TryCheckExternalAuthentication();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+                finally
+                {
+                    Instance = this;
+                }
             }
+            else
+                Destroy(gameObject);
 
             if (_lobby is { IsAuthenticated: true, WebSocketSession: { IsConnected: true } })
                 return;
@@ -73,16 +87,12 @@ namespace ElympicsLobbyPackage.Session
                 Debug.LogException(e);
                 await AnonymousAuthentication();
             }
-            finally
-            {
-                _isInitialized = true;
-            }
         }
 
         [PublicAPI]
         public async UniTask<bool> TryReAuthenticateIfWalletChanged()
         {
-            if (_isInitialized is false)
+            if (Instance == null)
                 throw new Exception($"Please Initialize SessionManager using {nameof(AuthenticateFromExternalAndConnect)} method");
 
             if (IsWalletEligible() is false)
@@ -365,15 +375,13 @@ namespace ElympicsLobbyPackage.Session
 
         private void OnDestroy()
         {
-            if (_wallet is not null)
+            if (_wallet != null)
                 _wallet.WalletConnectionUpdatedInternal -= OnWalletConnectionUpdated;
-            _isInitialized = false;
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
 
         internal void Reset()
         {
-            _isInitialized = false;
             CurrentSession = null;
             _authDataStorage.Clear();
         }
