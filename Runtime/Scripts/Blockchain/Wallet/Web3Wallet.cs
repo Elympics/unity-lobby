@@ -32,9 +32,9 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         private void Awake()
         {
             _scs = GetComponent<SmartContractService>();
-            UnSubscribe();
-            Subscribe();
         }
+
+        private void Start() => Subscribe();
 
         public async UniTask<string> ConnectWeb3()
         {

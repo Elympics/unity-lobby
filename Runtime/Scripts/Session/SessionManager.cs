@@ -11,7 +11,6 @@ using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.JWT;
 using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
-using Nethereum.Unity.Rpc;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -34,7 +33,7 @@ namespace ElympicsLobbyPackage.Session
         private IExternalAuthenticator _externalAuthenticator => ElympicsExternalCommunicator.Instance.ExternalAuthenticator;
         private WalletConnectionStatus? _walletConnectionUpdate;
 
-        private void Awake()
+        private void Start()
         {
             _lobby = ElympicsLobbyClient.Instance;
             _wallet = GetComponent<Web3Wallet>();
