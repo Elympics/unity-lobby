@@ -13,7 +13,10 @@ GameObject:
   - component: {fileID: 773821390082990742}
   - component: {fileID: -1970892285926819546}
   - component: {fileID: 2308011412948500162}
-  - component: {fileID: 7616533121664948154}
+  - component: {fileID: -2666342535485178591}
+  - component: {fileID: 2100168620290845104}
+  - component: {fileID: 986189677261840107}
+  - component: {fileID: 5606513100920054256}
   m_Layer: 0
   m_Name: ExternalCommunicator
   m_TagString: Untagged
@@ -62,6 +65,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scsConfig: {fileID: 0}
   standaloneAuthConfig: {fileID: 0}
+  standaloneWalletConfig: {fileID: 0}
 --- !u!114 &-1970892285926819546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88,7 +92,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d3528a65869f0041858ca5d49d5a376, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7616533121664948154
+  fallbackRegion: 
+--- !u!114 &-2666342535485178591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773821390082990743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c93a25caa2615343bb3cb72341f93eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2100168620290845104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773821390082990743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a17e61a6b14d57419a5a78f40ffe863, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 0}
+--- !u!114 &986189677261840107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773821390082990743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6021d9e20ecd1049baf8020f825a862, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5606513100920054256
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

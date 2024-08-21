@@ -14,9 +14,11 @@ namespace ElympicsLobbyPackage.Session
         public readonly Capabilities Capabilities;
         public readonly string Environment;
         public readonly bool IsMobile;
+        public readonly string ClosestRegion;
 
         public SessionInfo(AuthData? authData, string? accountWallet, string? signWallet, Capabilities capabilities, string environment,
-            bool isMobile)
+            bool isMobile,
+            string closestRegion)
         {
             AuthData = authData;
             AccountWallet = accountWallet;
@@ -24,6 +26,7 @@ namespace ElympicsLobbyPackage.Session
             Capabilities = capabilities;
             Environment = environment;
             IsMobile = isMobile;
+            ClosestRegion = closestRegion;
         }
 
         public bool IsAuthorized() => AuthData.AuthType is not (AuthType.ClientSecret or AuthType.None);
