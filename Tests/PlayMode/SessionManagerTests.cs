@@ -1,20 +1,15 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using Elympics.Models.Authentication;
-using Elympics.Tests;
 using ElympicsLobbyPackage;
 using ElympicsLobbyPackage.Authorization;
-using ElympicsLobbyPackage.DataStorage;
 using ElympicsLobbyPackage.Session;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NSubstitute;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -34,7 +29,7 @@ namespace ElympicsLobby.Tests.PlayMode
         private string _defaultEnvironment = EnvironmentNames.Development;
         private string _walletAddress = "walletAddress";
         private string _chainId = "11155111";
-        private ElympicsLobbyClient _lobby;
+        private string _defaultClosestRegion = "warsaw";
 
         private const string FakeJwt = @"{
   ""header"": {
@@ -55,11 +50,9 @@ namespace ElympicsLobby.Tests.PlayMode
         public IEnumerator SetUp()
         {
             SceneManager.LoadScene(TestNameScene);
-            yield return new WaitUntil(() => FindObjectOfType<SessionManager>() != null && ElympicsLobbyClient.Instance != null);
+            yield return new WaitUntil(() => FindObjectOfType<SessionManager>() != null);
             _sut = FindObjectOfType<SessionManager>();
             _communicator = ElympicsExternalCommunicator.Instance;
-            _lobby = ElympicsLobbyClient.Instance;
-            _lobby.MockIWebSocket(UserId, Nickname, false, null, out _).MockSuccessIAuthClient(FakeJwt, UserId, Nickname);
             Assert.NotNull(_sut);
             _sut.Reset();
         }
@@ -68,7 +61,7 @@ namespace ElympicsLobby.Tests.PlayMode
         public IEnumerator AuthenticateFromExternalAndConnect_ClientSecret() => UniTask.ToCoroutine(async () =>
         {
             _communicator.MockExternalWalletCommunicatorAndSet(string.Empty, string.Empty);
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
             var currSess = _sut.CurrentSession.Value;
@@ -78,14 +71,30 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
             Assert.IsNull(currSess.AccountWallet);
             Assert.IsNull(currSess.SignWallet);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion,currSess.ClosestRegion);
+        });
+
+        [UnityTest] //TODO: Need to make IRegionSelector for the test purposes.
+        public IEnumerator AuthenticateFromExternalAndConnect_ClientSecret_NoClosestRegion() => UniTask.ToCoroutine(async () =>
+        {
+            _communicator.MockExternalWalletCommunicatorAndSet(string.Empty, string.Empty);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, null);
+            await _sut.AuthenticateFromExternalAndConnect();
+            Assert.IsNotNull(_sut.CurrentSession);
+            var currSess = _sut.CurrentSession.Value;
+            Assert.IsNotNull(currSess.AuthData);
+            Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
+            Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
+            Assert.AreEqual(_defaultEnvironment, currSess.Environment);
+            Assert.IsNull(currSess.AccountWallet);
+            Assert.IsNull(currSess.SignWallet);
+            Assert.AreEqual(ElympicsRegions.Warsaw,currSess.ClosestRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateFromExternalAndConnect_Eth() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -94,8 +103,7 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.EthAddress == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion,currSess.ClosestRegion);
         });
 
         [UnityTest]
@@ -103,22 +111,22 @@ namespace ElympicsLobby.Tests.PlayMode
         {
             var jwt = EncodeJwtFromJson(FakeJwt);
             var auth = new AuthData(UserId, jwt, Nickname, AuthType.Telegram);
-            _communicator.MockIExternalAuthenticatorAndSet(auth, Capabilities.Telegram, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(auth, Capabilities.Telegram, _defaultEnvironment, _defaultClosestRegion);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
+            Assert.IsNotNull(_sut.CurrentSession.Value.AuthData);
             var currSess = _sut.CurrentSession.Value;
             Assert.IsNotNull(currSess.AuthData);
             Assert.IsTrue(AuthType.Telegram == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Telegram == currSess.Capabilities);
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion,currSess.ClosestRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateFromExternalAndConnect_ClientSecret_NoEthCapabilities() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Guest, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Guest, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -127,14 +135,13 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Guest == currSess.Capabilities);
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion,currSess.ClosestRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateAsEth_GetWalletDisconnectEvent_BecomeSecret() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorWithDisconnectionAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -143,19 +150,16 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.EthAddress == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
             await _sut.TryReAuthenticateIfWalletChanged();
             currSess = _sut.CurrentSession.Value;
             Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion,currSess.ClosestRegion);
         });
 
         [UnityTest]
         public IEnumerator AuthenticateAsClient_GetWalletConnectedEvent_BecomeEth() => UniTask.ToCoroutine(async () =>
         {
-            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment);
+            _communicator.MockIExternalAuthenticatorAndSet(null, Capabilities.Ethereum, _defaultEnvironment, _defaultClosestRegion);
             _communicator.MockExternalWalletCommunicatorWithConnectedAndSet(_walletAddress, _chainId);
             await _sut.AuthenticateFromExternalAndConnect();
             Assert.IsNotNull(_sut.CurrentSession);
@@ -164,13 +168,10 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
             await _sut.TryReAuthenticateIfWalletChanged();
             currSess = _sut.CurrentSession.Value;
             Assert.IsTrue(AuthType.EthAddress == currSess.AuthData.AuthType);
-            Assert.IsTrue(_lobby.IsAuthenticated);
-            Assert.IsTrue(_lobby.WebSocketSession.IsConnected);
+            Assert.AreEqual(_defaultClosestRegion,currSess.ClosestRegion);
         });
 
         private static string EncodeJwtFromJson(string json)
@@ -206,8 +207,6 @@ namespace ElympicsLobby.Tests.PlayMode
         {
             _sut.Reset();
             _communicator.MockExternalWalletCommunicatorAndSet(string.Empty, string.Empty);
-            if (_lobby.IsAuthenticated)
-                _lobby.SignOut();
         }
 
         public void Setup()
