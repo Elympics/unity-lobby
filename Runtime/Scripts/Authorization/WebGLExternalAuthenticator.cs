@@ -20,7 +20,7 @@ namespace ElympicsLobbyPackage.ExternalCommunication
             {
                 gameId = gameId,
                 gameName = gameName,
-                versionName = versionName
+                versionName = versionName,
             };
             var result = await _jsCommunicator.SendRequestMessage<InitializationMessage, InitializationResponse>(ReturnEventTypes.Handshake, message);
             var capabilities = (Capabilities)result.capabilities;
