@@ -194,12 +194,20 @@ namespace ElympicsLobbyPackage.Session
         {
             if (string.IsNullOrEmpty(externalClosestRegion))
             {
+                Debug.LogWarning($"External closest region is null.");
                 var closestRegion = await FindClosestRegion();
-                _region = string.IsNullOrEmpty(closestRegion) ? fallbackRegion : closestRegion;
-
+                if (string.IsNullOrEmpty(closestRegion))
+                {
+                    Debug.LogWarning("Custom region search failed to find closest region. Using fallback region.");
+                    _region = fallbackRegion;
+                }
+                else
+                    _region = closestRegion;
             }
             else
                 _region = externalClosestRegion;
+
+            Debug.Log($"Closest region is {_region}");
         }
 
         private async UniTask WalletAuthentication()
