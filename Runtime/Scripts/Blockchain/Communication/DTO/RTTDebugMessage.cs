@@ -4,6 +4,6 @@ namespace ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.
     [Serializable]
     public class RTTDebugMessage
     {
-        public string rtt;
+        public double rtt;
     }
 }

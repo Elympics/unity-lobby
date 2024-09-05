@@ -23,7 +23,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
 			return JsonUtility.ToJson(voidMessage);
 		}
 
-        public string GetDebugMessageJson<T>(string debugType, T payload)
+        public static string GetDebugMessageJson<T>(string debugType, T payload)
         {
             var debugMessage = new DebugMessage<T>()
             {
