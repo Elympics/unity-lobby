@@ -1,23 +1,27 @@
-using System;
 using Elympics;
-using ElympicsLobbyPackage;
 using UnityEngine;
 
-public class RttReporter : MonoBehaviour
+namespace ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Game
 {
-    [SerializeField] private int tickInterval;
-    private ElympicsClient _client;
-    private int _counter;
-    private void Awake() => _client = FindObjectOfType<ElympicsClient>();
-
-    public void Update()
+    public class RttReporter : MonoBehaviour
     {
-        ++_counter;
-        if (_counter <= tickInterval)
-            return;
+        [SerializeField] private int tickInterval;
+        private ElympicsClient _client;
+        private int _counter;
+        private void Start() => _client = FindObjectOfType<ElympicsClient>();
+        public void Update()
+        {
+            ++_counter;
+            if (_counter <= tickInterval)
+                return;
 
-        _counter = 0;
-        var avgRtt =_client.RoundTripTimeCalculator.AverageRoundTripTime;
-        ElympicsExternalCommunicator.Instance.GameStatusCommunicator.RttUpdated(avgRtt);
+            _counter = 0;
+            var avgRtt = _client.RoundTripTimeCalculator.AverageRoundTripTime;
+            Debug.Log($"Reporting {avgRtt}");
+            if (ElympicsExternalCommunicator.Instance != null)
+            {
+                ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.RttUpdated(avgRtt);
+            }
+        }
     }
 }
