@@ -45,12 +45,12 @@ namespace ElympicsLobbyPackage
         {
             if (Instance == null)
             {
-                _webGLFunctionalities = new WebGLFunctionalities();
-                _webGLFunctionalities.Init();
+
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find JsCommunicator component on gameObject {gameObject.name}");
 #if UNITY_WEBGL && !UNITY_EDITOR
+            _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
             ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator);
             WalletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator, scsConfig);
             GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator);
