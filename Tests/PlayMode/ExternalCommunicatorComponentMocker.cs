@@ -14,10 +14,10 @@ namespace ElympicsLobby.Tests.PlayMode
 {
     public static class ExternalCommunicatorComponentMocker
     {
-        public static void MockIExternalAuthenticatorAndSet(this ElympicsExternalCommunicator communicator, AuthData authData, Capabilities mockCapabilities, string environment)
+        public static void MockIExternalAuthenticatorAndSet(this ElympicsExternalCommunicator communicator, AuthData authData, Capabilities mockCapabilities, string environment, string closestRegion)
         {
             var authMock = Substitute.For<IExternalAuthenticator>();
-            _ = authMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(UniTask.FromResult(new ExternalAuthData(authData, true, mockCapabilities, environment)));
+            _ = authMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(UniTask.FromResult(new ExternalAuthData(authData, true, mockCapabilities, environment, closestRegion)));
             communicator.SetCustomExternalAuthenticator(authMock);
         }
 
@@ -62,7 +62,7 @@ namespace ElympicsLobby.Tests.PlayMode
             {
                 address = string.Empty,
                 chainId = string.Empty,
-            })).AndDoes(x => listener.OnWalletConnected(address,chainId));
+            })).AndDoes(x => listener.OnWalletConnected(address, chainId));
             communicator.SetCustomExternalWalletCommunicator(walletMock);
         }
     }

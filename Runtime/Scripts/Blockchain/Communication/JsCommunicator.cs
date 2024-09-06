@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Cysharp.Threading.Tasks;
+using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using ElympicsLobbyPackage.ExternalCommunication;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
     internal class JsCommunicator : MonoBehaviour, IJsCommunicatorRetriever
     {
         public event Action<string>? ResponseObjectReceived;
-        public event Action<string>? WebObjectReceived;
+        public event Action<WebMessageObject>? WebObjectReceived;
 
         private int _requestCounter;
         private const string ProtocolVersion = "0.1.0";
@@ -49,7 +50,10 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         public void SendVoidMessage<TInput>(string messageType, TInput payload)
         {
             var message = _messageFactory.GetVoidMessageJson(messageType, payload);
-            Debug.Log($"[{nameof(JsCommunicator)}] Send {messageType} message: {message}");
+
+            if (messageType is not VoidEventTypes.Debug)
+                Debug.Log($"[{nameof(JsCommunicator)}] Send {messageType} message: {message}");
+
             DispatchVoidMessage(message);
         }
 
@@ -72,8 +76,9 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         {
             try
             {
-                Debug.Log($"[{nameof(JsCommunicator)}] Handle Web Event.");
-                WebObjectReceived?.Invoke(messageObject);
+                Debug.Log($"[{nameof(JsCommunicator)}] Received Web Event {messageObject}.");
+                var message = JsonUtility.FromJson<WebMessageObject>(messageObject);
+                WebObjectReceived?.Invoke(message);
             }
             catch (Exception e)
             {

@@ -1,4 +1,5 @@
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
 using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain.Communication
@@ -21,6 +22,16 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
 			};
 			return JsonUtility.ToJson(voidMessage);
 		}
+
+        public static string GetDebugMessageJson<T>(string debugType, T payload)
+        {
+            var debugMessage = new DebugMessage<T>()
+            {
+                debugType = debugType,
+                message = payload,
+            };
+            return JsonUtility.ToJson(debugMessage);
+        }
 
 		public string GenerateRequestMessageJson<TInput>(int requestNumber, string type, string address, TInput message)
 		{

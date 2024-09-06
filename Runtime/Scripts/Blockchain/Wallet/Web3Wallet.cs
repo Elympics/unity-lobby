@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain.Wallet
 {
-    [RequireComponent(typeof(SmartContractService))]
+    [RequireComponent(typeof(ISmartContractServiceWrapper))]
     [DefaultExecutionOrder(ExecutionOrders.Web3Wallet)]
     public class Web3Wallet : ElympicsEthSigner, IWallet
     {
@@ -26,12 +26,12 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         public override string Address => _address;
 
         private string? _address;
-        private SmartContractService _scs;
+        private ISmartContractServiceWrapper _scs;
 
         private static IExternalWalletCommunicator WalletCommunicator => ElympicsExternalCommunicator.Instance!.WalletCommunicator!;
         private void Awake()
         {
-            _scs = GetComponent<SmartContractService>();
+            _scs = GetComponent<ISmartContractServiceWrapper>();
         }
 
         private void Start() => Subscribe();
@@ -62,7 +62,7 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
             }
         }
 
-        public override BigInteger ChainId => BigInteger.Parse(config.GetChainConfigForGameId(ElympicsConfig.Load().GetCurrentGameConfig().GameId).Value.chainId);
+        public override BigInteger ChainId => BigInteger.Parse(_scs.CurrentChain!.Value.chainId);
 
         public override async UniTask<string> SignAsync(string message, CancellationToken ct = default)
         {

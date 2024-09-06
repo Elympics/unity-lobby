@@ -9,6 +9,7 @@ using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.Blockchain.Utils;
 using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Protocol.WebMessages.Models;
 using SCS;
 using UnityEngine;
 using TransactionToSign = ElympicsLobbyPackage.Blockchain.Communication.DTO.TransactionToSign;
@@ -32,20 +33,18 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
             _communicator.WebObjectReceived += OnWebObjectReceived;
         }
 
-        private void OnWebObjectReceived(string messageObject)
+        private void OnWebObjectReceived(WebMessageObject messageObject)
         {
-            Debug.Log($"[ApiConnector] Message received: {messageObject}");
-            var webMessage = JsonUtility.FromJson<WebMessageObject>(messageObject);
-
-            switch (webMessage.type)
+            switch (messageObject.type)
             {
                 case WebMessages.WalletConnection:
-                    OnWalletConnected(webMessage.message);
+                    OnWalletConnected(messageObject.message);
                     break;
                 default:
-                    throw new ArgumentException($"Message type {webMessage.type} is not supported");
+                    throw new ArgumentException($"Message type {messageObject.type} is not supported");
             }
         }
+
         private void OnWalletConnected(string webMessageMessage)
         {
             var walletConnectedData = JsonUtility.FromJson<WalletConnectionMessage>(webMessageMessage);

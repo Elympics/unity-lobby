@@ -40,14 +40,17 @@ namespace ElympicsLobbyPackage
         [SerializeField] private StandaloneBrowserJsConfig standaloneWalletConfig = null!;
 
         private JsCommunicator _jsCommunicator = null!;
+        private WebGLFunctionalities _webGLFunctionalities = null!;
         private void Awake()
         {
             if (Instance == null)
             {
+
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find JsCommunicator component on gameObject {gameObject.name}");
 #if UNITY_WEBGL && !UNITY_EDITOR
+            _webGLFunctionalities = new WebGLFunctionalities(_jsCommunicator);
             ExternalAuthenticator = new WebGLExternalAuthenticator(_jsCommunicator);
             WalletCommunicator = new WebGLExternalWalletCommunicator(_jsCommunicator, scsConfig);
             GameStatusCommunicator = new WebGLGameStatusCommunicator(_jsCommunicator);
