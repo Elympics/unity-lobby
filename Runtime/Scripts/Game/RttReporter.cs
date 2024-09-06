@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using Elympics;
 using UnityEngine;
 
@@ -17,11 +18,8 @@ namespace ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Game
 
             _counter = 0;
             var avgRtt = _client.RoundTripTimeCalculator.AverageRoundTripTime;
-            Debug.Log($"Reporting {avgRtt}");
             if (ElympicsExternalCommunicator.Instance != null)
-            {
                 ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.RttUpdated(avgRtt);
-            }
         }
     }
 }
