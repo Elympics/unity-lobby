@@ -24,6 +24,12 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         public const string GameFinished = "GameFinished";
         public const string ShowAccountUI = "ShowAccountUI";
         public const string ApplicationInitialized = "ApplicationInitialized";
+        public const string Debug = "Debug";
+    }
+
+    public static class DebugMessageTypes
+    {
+        public const string RTT = "RTT";
     }
 
     public static class ReactHandlers

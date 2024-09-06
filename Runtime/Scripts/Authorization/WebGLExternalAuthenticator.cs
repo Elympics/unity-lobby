@@ -16,11 +16,12 @@ namespace ElympicsLobbyPackage.ExternalCommunication
 
         public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName)
         {
-            var message = new InitializationMessage()
+            var message = new InitializationMessage
             {
                 gameId = gameId,
                 gameName = gameName,
-                versionName = versionName
+                versionName = versionName,
+                systemInfo = SystemInfoDataFactory.GetSystemInfoData(),
             };
             var result = await _jsCommunicator.SendRequestMessage<InitializationMessage, InitializationResponse>(ReturnEventTypes.Handshake, message);
             var capabilities = (Capabilities)result.capabilities;
