@@ -50,7 +50,10 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         public void SendVoidMessage<TInput>(string messageType, TInput payload)
         {
             var message = _messageFactory.GetVoidMessageJson(messageType, payload);
-            Debug.Log($"[{nameof(JsCommunicator)}] Send {messageType} message: {message}");
+
+            if (messageType is not VoidEventTypes.Debug)
+                Debug.Log($"[{nameof(JsCommunicator)}] Send {messageType} message: {message}");
+
             DispatchVoidMessage(message);
         }
 
