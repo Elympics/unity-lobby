@@ -40,8 +40,6 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
                 case WebMessages.WalletConnection:
                     OnWalletConnected(messageObject.message);
                     break;
-                default:
-                    throw new ArgumentException($"Message type {messageObject.type} is not supported");
             }
         }
 
