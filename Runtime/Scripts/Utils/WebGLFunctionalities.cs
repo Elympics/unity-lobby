@@ -26,8 +26,6 @@ namespace ElympicsLobbyPackage
                 case WebMessages.WebGLKeyboardInputControl:
                     OnKeyboardInputControlsRequested(messageObject.message);
                     break;
-                default:
-                    throw new ArgumentException($"Message type {messageObject.type} is not supported");
             }
         }
 
