@@ -82,7 +82,11 @@ namespace ElympicsLobbyPackage.Session
         {
             try
             {
-                var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(ElympicsRegions.AllAvailableRegions);
+                var availableRegions = await ElympicsRegions.GetAvailableRegions();
+                if (availableRegions == null || availableRegions.Count == 0)
+                    return string.Empty;
+
+                var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
                 return closestRegion.Region;
             }
             catch (Exception e)
