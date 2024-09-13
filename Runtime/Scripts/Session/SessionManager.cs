@@ -129,24 +129,30 @@ namespace ElympicsLobbyPackage.Session
         }
 
         [PublicAPI]
+        public void ConnectWallet() => _wallet!.ExternalShowConnectToWallet();
+
+        [PublicAPI]
+        public void SelectChain() => _wallet!.ExternalShowChainSelection();
+
+        [PublicAPI]
         public async UniTask ConnectToWallet()
         {
             try
             {
                 var address = await CheckWalletConnection();
                 if (string.IsNullOrEmpty(address))
-                    _wallet.ExternalShowConnectToWallet();
+                    throw new WalletConnectionException("Wallet has to be connected. Use ConnectWallet.");
                 else
                     await TryConnectToWalletOrAnonymous(address);
             }
             catch (ResponseException e)
             {
-                _wallet.ExternalShowConnectToWallet();
+                throw new WalletConnectionException("Wallet has to be connected. Use ConnectWallet.");
             }
             catch (ChainIdMismatch chainIdMismatch)
             {
                 Debug.Log($"[{nameof(SessionManager)}] Chain Mismatch. {chainIdMismatch}");
-                _wallet.ExternalShowChainSelection();
+                throw;
             }
         }
 
