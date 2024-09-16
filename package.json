@@ -16,6 +16,6 @@
     "networking"
   ],
   "dependencies": {
-    "com.daftmobile.elympics": "0.13.2"
+    "com.daftmobile.elympics": "0.13.3"
   }
 }
