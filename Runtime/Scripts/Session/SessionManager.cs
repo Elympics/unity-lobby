@@ -12,6 +12,7 @@ using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.JWT;
 using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
+using Nethereum.Web3;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace ElympicsLobbyPackage.Session
         public SessionInfo? CurrentSession { get; private set; }
 
         [SerializeField] private string fallbackRegion = ElympicsRegions.Warsaw;
+
 
         private static SessionManager? instance;
         private string _region = null!;
@@ -133,7 +135,7 @@ namespace ElympicsLobbyPackage.Session
         }
 
         [PublicAPI]
-        public void ConnectWallet() => _wallet!.ExternalShowConnectToWallet();
+        public void ShowExternalWalletConnectionPanel() => _wallet!.ExternalShowConnectToWallet();
 
         [PublicAPI]
         public void SelectChain() => _wallet!.ExternalShowChainSelection();
