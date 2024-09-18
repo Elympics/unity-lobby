@@ -12,6 +12,7 @@ using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.JWT;
 using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
+using Nethereum.Web3;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace ElympicsLobbyPackage.Session
         public SessionInfo? CurrentSession { get; private set; }
 
         [SerializeField] private string fallbackRegion = ElympicsRegions.Warsaw;
+
 
         private static SessionManager? instance;
         private string _region = null!;
@@ -82,7 +84,11 @@ namespace ElympicsLobbyPackage.Session
         {
             try
             {
-                var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(ElympicsRegions.AllAvailableRegions);
+                var availableRegions = await ElympicsRegions.GetAvailableRegions();
+                if (availableRegions == null || availableRegions.Count == 0)
+                    return string.Empty;
+
+                var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
                 return closestRegion.Region;
             }
             catch (Exception e)
@@ -129,24 +135,30 @@ namespace ElympicsLobbyPackage.Session
         }
 
         [PublicAPI]
+        public void ShowExternalWalletConnectionPanel() => _wallet!.ExternalShowConnectToWallet();
+
+        [PublicAPI]
+        public void SelectChain() => _wallet!.ExternalShowChainSelection();
+
+        [PublicAPI]
         public async UniTask ConnectToWallet()
         {
             try
             {
                 var address = await CheckWalletConnection();
                 if (string.IsNullOrEmpty(address))
-                    _wallet.ExternalShowConnectToWallet();
+                    throw new WalletConnectionException("Wallet has to be connected. Use ConnectWallet.");
                 else
                     await TryConnectToWalletOrAnonymous(address);
             }
             catch (ResponseException e)
             {
-                _wallet.ExternalShowConnectToWallet();
+                throw new WalletConnectionException("Wallet has to be connected. Use ConnectWallet.");
             }
             catch (ChainIdMismatch chainIdMismatch)
             {
                 Debug.Log($"[{nameof(SessionManager)}] Chain Mismatch. {chainIdMismatch}");
-                _wallet.ExternalShowChainSelection();
+                throw;
             }
         }
 
