@@ -3,6 +3,7 @@ using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.Tournament.Util;
+using Elympics;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
@@ -46,7 +47,12 @@ namespace ElympicsLobbyPackage.ExternalCommunication
                     participants = _config.Participants,
                 };
             }
-            return new ExternalAuthData(null, result.device == "Mobile", (Capabilities)result.capabilities, result.environment, result.closestRegion, result.tournamentData?.ToTournamentInfo());
+            await ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(new ConnectionData()
+            {
+                AuthType = _config.AuthType
+            });
+            return new ExternalAuthData(ElympicsLobbyClient.Instance.AuthData, result.device == "Mobile", (Capabilities)result.capabilities, result.environment, result.closestRegion, result.tournamentData?.ToTournamentInfo());
+
         }
     }
 }
