@@ -14,13 +14,15 @@ namespace ElympicsLobbyPackage.ExternalCommunication
         private readonly JsCommunicator _jsCommunicator;
         public WebGLExternalAuthenticator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
 
-        public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName)
+        public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
         {
             var message = new InitializationMessage
             {
                 gameId = gameId,
                 gameName = gameName,
                 versionName = versionName,
+                sdkVersion = sdkVersion,
+                lobbyPackageVersion = lobbyPackageVersion,
                 systemInfo = SystemInfoDataFactory.GetSystemInfoData(),
             };
             var result = await _jsCommunicator.SendRequestMessage<InitializationMessage, InitializationResponse>(ReturnEventTypes.Handshake, message);

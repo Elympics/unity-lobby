@@ -85,7 +85,8 @@ namespace ElympicsLobbyPackage.Session
             try
             {
                 var availableRegions = await ElympicsRegions.GetAvailableRegions();
-                if (availableRegions == null || availableRegions.Count == 0)
+                if (availableRegions == null
+                    || availableRegions.Count == 0)
                     return string.Empty;
 
                 var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
@@ -182,6 +183,8 @@ namespace ElympicsLobbyPackage.Session
         private async UniTask TryCheckExternalAuthentication()
         {
             Debug.Log($"{nameof(SessionManager)} Check external authentication.");
+            var sdkVersion = ElympicsConfig.SdkVersion;
+            var lobbyPackageVersion = LobbyPackageVersionRetriever.GetVersionStringFromAssembly();
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
             var gameName = config.GameName;
             var gameId = config.GameId;
@@ -190,7 +193,7 @@ namespace ElympicsLobbyPackage.Session
             if (ExternalAuthenticator is null)
                 throw new Exception($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthenticator)}");
 #endif
-            var result = await ExternalAuthenticator.InitializationMessage(gameId, gameName, versionName);
+            var result = await ExternalAuthenticator.InitializationMessage(gameId, gameName, versionName, sdkVersion, lobbyPackageVersion);
 
             await SetClosestRegion(result.ClosestRegion);
 
@@ -222,7 +225,7 @@ namespace ElympicsLobbyPackage.Session
             Debug.Log($"Closest region is {_region}");
         }
 
-        private async UniTask WalletAuthentication()
+        private async UniTask WalletAuthentication() //
         {
             try
             {
