@@ -57,19 +57,19 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             }
         }
 
-        public async void ConnectToWallet()
+        public async UniTask ConnectToWallet()
         {
             try
             {
                 await sessionManager.ConnectToWallet();
             }
+            catch (WalletConnectionException)
+            {
+                sessionManager.ShowExternalWalletConnectionPanel();
+            }
             catch (Exception e)
             {
                 Debug.LogError(e);
-            }
-            finally
-            {
-                AttemptReAuthenticate();
             }
         }
     }

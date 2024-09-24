@@ -61,6 +61,6 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             CachedMatchId = obj.MatchId;
         }
 
-        public void ConnectToWallet() => authorizationManager.ConnectToWallet();
+        public void ConnectToWallet() => authorizationManager.ConnectToWallet().Forget();
     }
 }
