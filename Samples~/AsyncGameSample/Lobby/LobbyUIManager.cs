@@ -73,7 +73,6 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         public void ConnectToWallet()
         {
             PersistentLobbyManager.Instance.ConnectToWallet();
-            authenticationInProgressScreen.SetActive(true);
         }
 
         [UsedImplicitly]
