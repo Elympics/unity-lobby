@@ -13,6 +13,8 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         private Web3Wallet web3Wallet;
         private LobbyUIManager lobbyUIManager;
 
+        public bool StartAuthenticationFinished { get; private set; } = false;
+
         public void InitializeAuthorizationManager(SessionManager sessionManager, Web3Wallet web3Wallet)
         {
             this.sessionManager = sessionManager;
@@ -35,6 +37,8 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
             lobbyUIManager.SetLobbyUIVariant(sessionManager);
             web3Wallet.WalletConnectionUpdated += ReactToAuthenticationChange;
+
+            StartAuthenticationFinished = true;
         }
 
         public async void AttemptReAuthenticate()

@@ -43,7 +43,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         public void SetAppState(AppState newState)
         {
             appState = newState;
-            if (appState == AppState.Lobby)
+            if (appState == AppState.Lobby && authorizationManager.StartAuthenticationFinished)
             {
                 SetLobbyUIManager();
                 authorizationManager.AttemptReAuthenticate();

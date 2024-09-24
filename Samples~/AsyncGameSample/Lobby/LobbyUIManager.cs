@@ -20,7 +20,6 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         [SerializeField] private GameObject matchmakingInProgressScreen;
         [SerializeField] private GameObject playerAvatar;
 
-        private PersistentLobbyManager persistentLobbyManager = null;
         private LeaderboardManager leaderboardManager = null;
 
         private string playQueue = "training";
@@ -28,8 +27,8 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         private void Start()
         {
-            persistentLobbyManager = FindObjectOfType<PersistentLobbyManager>();
-            persistentLobbyManager.SetAppState(PersistentLobbyManager.AppState.Lobby);
+            if (PersistentLobbyManager.Instance != null)
+                PersistentLobbyManager.Instance.SetAppState(PersistentLobbyManager.AppState.Lobby);
         }
 
         public void SetAuthenticationScreenActive(bool newValue) => authenticationInProgressScreen.SetActive(newValue);
@@ -73,14 +72,14 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         [UsedImplicitly]
         public void ConnectToWallet()
         {
-            persistentLobbyManager.ConnectToWallet();
+            PersistentLobbyManager.Instance.ConnectToWallet();
             authenticationInProgressScreen.SetActive(true);
         }
 
         [UsedImplicitly]
         public async void PlayGame()
         {
-            persistentLobbyManager.SetAppState(PersistentLobbyManager.AppState.Matchmaking);
+            PersistentLobbyManager.Instance.SetAppState(PersistentLobbyManager.AppState.Matchmaking);
             matchmakingInProgressScreen.SetActive(true);
             await ElympicsLobbyClient.Instance.RoomsManager.StartQuickMatch(playQueue);
         }

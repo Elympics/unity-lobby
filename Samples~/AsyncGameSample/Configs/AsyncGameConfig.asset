@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameName: AsynchronousGameSample
   gameId: 36b35382-23fe-42d2-b559-6e655be5f700
-  gameVersion: 1
+  gameVersion: 3.1
   players: 1
   gameplayScene: Assets/LobbySamples/AsyncGameSample/Gameplay/CutTheZeroSampleGameplayScene.unity
   gameplaySceneAsset: {fileID: 102900000, guid: d36308f4f10e7394fa2e58749fa7eb14,
