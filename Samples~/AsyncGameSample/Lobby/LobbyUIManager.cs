@@ -3,7 +3,6 @@ using TMPro;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.Session;
-using ElympicsLobbyPackage;
 using Elympics;
 using JetBrains.Annotations;
 
@@ -27,7 +26,11 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         private string playQueue = "training";
         private string leaderBoardQueue;
 
-        public void SetPersistantLobbyManager(PersistentLobbyManager newValue) => persistentLobbyManager = newValue;
+        private void Start()
+        {
+            persistentLobbyManager = FindObjectOfType<PersistentLobbyManager>();
+            persistentLobbyManager.SetAppState(PersistentLobbyManager.AppState.Lobby);
+        }
 
         public void SetAuthenticationScreenActive(bool newValue) => authenticationInProgressScreen.SetActive(newValue);
 

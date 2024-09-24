@@ -949,8 +949,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1283848612}
-        m_TargetAssemblyTypeName: DisplayManager, Assembly-CSharp
-        m_MethodName: ReturnToLobbyButtonOnClick
+        m_TargetAssemblyTypeName: ElympicsLobbyPackage.Sample.AsyncGame.DisplayManager,
+          Assembly-CSharp
+        m_MethodName: ReturnToLobby
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1671,6 +1672,7 @@ MonoBehaviour:
   playerTransform: {fileID: 549389468}
   gameOverScreen: {fileID: 1751634670}
   respectText: {fileID: 1883030132}
+  lobbySceneName: AsyncGameLobbyScene
 --- !u!114 &1283848613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2108,51 +2110,63 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 7529846740173844773, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844773, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_Name
       value: Elympics
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_RootOrder
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalPosition.x
       value: 7.4907627
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalPosition.y
       value: -2.9479818
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalPosition.z
       value: 2902.3477
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed, type: 3}
+    - target: {fileID: 7529846740173844775, guid: f96262bc694c229408688203398b88ed,
+        type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
@@ -2803,7 +2817,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit

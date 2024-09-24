@@ -53,7 +53,6 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         private void SetLobbyUIManager()
         {
             lobbyUIManager = FindObjectOfType<LobbyUIManager>();
-            lobbyUIManager.SetPersistantLobbyManager(this);
             authorizationManager.SetLobbyUIManager(lobbyUIManager);
         }
 

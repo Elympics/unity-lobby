@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using Elympics;
+using JetBrains.Annotations;
 
 namespace ElympicsLobbyPackage.Sample.AsyncGame
 {
@@ -36,15 +37,10 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             DisplayRespect();
         }
 
-        public void ReturnToLobbyButtonOnClick()
+        [UsedImplicitly] // return to lobby button
+        public void ReturnToLobby()
         {
-            ReturnToLobby().Forget();
-        }
-
-        private async UniTask ReturnToLobby()
-        {
-            await SceneManager.LoadSceneAsync(lobbySceneName);
-            PersistentLobbyManager.Instance.SetAppState(PersistentLobbyManager.AppState.Lobby);
+            SceneManager.LoadScene(lobbySceneName);
         }
 
         private async void DisplayRespect()
