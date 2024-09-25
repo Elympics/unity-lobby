@@ -59,9 +59,13 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         public async UniTask ConnectToWallet()
         {
+            lobbyUIManager.SetAuthenticationScreenActive(true);
+
             try
             {
                 await sessionManager.ConnectToWallet();
+
+                lobbyUIManager.SetLobbyUIVariant(sessionManager);
             }
             catch (WalletConnectionException)
             {
@@ -71,6 +75,8 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             {
                 Debug.LogError(e);
             }
+
+            lobbyUIManager.SetAuthenticationScreenActive(false);
         }
     }
 }

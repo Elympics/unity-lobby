@@ -152,7 +152,7 @@ namespace ElympicsLobbyPackage.Session
                 else
                     await TryConnectToWalletOrAnonymous(address);
             }
-            catch (ResponseException e)
+            catch (ResponseException _)
             {
                 throw new WalletConnectionException("Wallet has to be connected. Use ConnectWallet.");
             }
