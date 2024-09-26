@@ -37,6 +37,7 @@ namespace ElympicsLobbyPackage.Session
         private Web3Wallet? _wallet;
         private readonly AuthDataStorage _authDataStorage = new();
         private static IExternalAuthenticator ExternalAuthenticator => ElympicsExternalCommunicator.Instance!.ExternalAuthenticator!;
+        private IExternalWalletCommunicator WalletCommunicator => ElympicsExternalCommunicator.Instance!.WalletCommunicator!;
         private WalletConnectionStatus? _walletConnectionUpdate;
 
         private void Start()
@@ -45,6 +46,7 @@ namespace ElympicsLobbyPackage.Session
             _lobbyWrapper = GetComponent<IElympicsLobbyWrapper>();
             _wallet = GetComponent<Web3Wallet>();
             _wallet.WalletConnectionUpdatedInternal += OnWalletConnectionUpdated;
+            ElympicsExternalCommunicator.Instance!.AuthDataChanged += OnAuthDataChanged;
         }
 
         /// <summary>
@@ -69,7 +71,7 @@ namespace ElympicsLobbyPackage.Session
         }
 
         [PublicAPI]
-        public async UniTask<bool> TryReAuthenticateIfWalletChanged()
+        public async UniTask<bool> TryReAuthenticateIfAuthDataChanged()
         {
             if (instance == null)
                 throw new Exception($"Please Initialize SessionManager using {nameof(AuthenticateFromExternalAndConnect)} method");
@@ -399,10 +401,14 @@ namespace ElympicsLobbyPackage.Session
             return await _wallet!.ConnectWeb3();
         }
 
+        private void OnAuthDataChanged(AuthData data) => AuthWithCached(data, false, null).Forget();
+
         private void OnDestroy()
         {
             if (_wallet != null)
                 _wallet.WalletConnectionUpdatedInternal -= OnWalletConnectionUpdated;
+            ElympicsExternalCommunicator.Instance!.AuthDataChanged -= OnAuthDataChanged;
+            ExternalAuthenticator.Dispose();
         }
         private bool IsWalletEligible() => CurrentSession.HasValue && (CurrentSession.Value.Capabilities.IsEth() || CurrentSession.Value.Capabilities.IsTon());
 

@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.Blockchain;
 using ElympicsLobbyPackage.Blockchain.Communication;
@@ -32,6 +33,9 @@ namespace ElympicsLobbyPackage
 
         [PublicAPI]
         public event Action<TrustDepositInfo>? TrustDepositCompleted;
+
+        [PublicAPI]
+        public event Action<AuthData>? AuthDataChanged;
 
         [PublicAPI]
         public static ElympicsExternalCommunicator? Instance;
@@ -104,6 +108,7 @@ namespace ElympicsLobbyPackage
 #endif
                 Instance = this;
                 WalletCommunicator.SetPlayPadEventListener(this);
+                ExternalAuthenticator.SetPlayPadEventListener(this);
             }
             else
                 Destroy(gameObject);
@@ -117,7 +122,12 @@ namespace ElympicsLobbyPackage
 
 
         [PublicAPI]
-        public void SetCustomExternalAuthenticator(IExternalAuthenticator customExternalAuthenticator) => ExternalAuthenticator = customExternalAuthenticator ?? throw new ArgumentNullException(nameof(customExternalAuthenticator));
+        public void SetCustomExternalAuthenticator(IExternalAuthenticator customExternalAuthenticator)
+        {
+            ExternalAuthenticator = customExternalAuthenticator ?? throw new ArgumentNullException(nameof(customExternalAuthenticator));
+            ExternalAuthenticator.SetPlayPadEventListener(this);
+        }
+
         [PublicAPI]
         public void SetCustomExternalWalletCommunicator(IExternalWalletCommunicator customExternalWalletCommunicator) => WalletCommunicator = customExternalWalletCommunicator ?? throw new ArgumentNullException(nameof(customExternalWalletCommunicator));
         [PublicAPI]
@@ -136,6 +146,7 @@ namespace ElympicsLobbyPackage
         }
         public void OnWalletConnected(string address, string chainId) => WalletConnected?.Invoke(address, chainId);
         public void OnWalletDisconnected() => WalletDisconnected?.Invoke();
+        public void OnAuthChanged(AuthData authData) => AuthDataChanged?.Invoke(authData);
         void IPlayPadEventListener.OnTrustDepositFinished(TrustDepositTransactionFinishedWebMessage transaction)
         {
             var currentTrustState = new TrustState()

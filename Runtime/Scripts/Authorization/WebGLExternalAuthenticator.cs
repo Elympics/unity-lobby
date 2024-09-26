@@ -1,15 +1,15 @@
 using System;
-using ElympicsLobbyPackage.Blockchain.Communication;
-using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
+using ElympicsLobbyPackage.Blockchain.Communication;
+using ElympicsLobbyPackage.Blockchain.Communication.DTO;
+using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.JWT;
-using ElympicsLobbyPackage.Tournament;
-using ElympicsLobbyPackage.Tournament.Util;
 using UnityEngine;
 using ElympicsLobbyPackage.Session;
-using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
+using ElympicsLobbyPackage.Tournament.Util;
 using ElympicsLobbyPackage.Utils;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
@@ -17,7 +17,12 @@ namespace ElympicsLobbyPackage.ExternalCommunication
     internal class WebGLExternalAuthenticator : IExternalAuthenticator
     {
         private readonly JsCommunicator _jsCommunicator;
-        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
+        private IPlayPadEventListener _connectionListener = null!;
+        public WebGLExternalAuthenticator(JsCommunicator jsCommunicator)
+        {
+            _jsCommunicator = jsCommunicator;
+            _jsCommunicator.WebObjectReceived += OnWebObjectReceived;
+        }
 
         public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
         {
@@ -63,5 +68,51 @@ namespace ElympicsLobbyPackage.ExternalCommunication
             if (string.IsNullOrEmpty(payloadDeserialized.authType))
                 throw new SessionManagerFatalError("Couldn't find authType in payload. Unable to authorize.");
         }
+
+        private void OnWebObjectReceived(WebMessageObject messageObject)
+        {
+            switch (messageObject.type)
+            {
+                case Blockchain.Communication.WebMessages.AuthDataChanged:
+                    OnAuthDataChanged(messageObject.message);
+                    break;
+            }
+        }
+
+        private void OnAuthDataChanged(string message)
+        {
+            var data = JsonUtility.FromJson<AuthDataChangedMessage>(message);
+            var authType = GetAuthTypeFromJwt(data.newJwt);
+            if (authType is not null)
+            {
+                var cached = new AuthData(Guid.Parse(data.newUserId), data.newJwt, data.newNickname, authType.Value);
+                Debug.Log($"{nameof(WebGLExternalAuthenticator)} External authentication changed result: AuthType: {authType.Value} UserId: {data.newUserId} NickName: {data.newNickname}.");
+                _connectionListener.OnAuthChanged(cached);
+            }
+        }
+
+        private AuthType? GetAuthTypeFromJwt(string jwt)
+        {
+            var payload = JsonWebToken.Decode(jwt, string.Empty, false);
+            var formattedPayload = AuthTypeRaw.ToUnityNaming(payload);
+            var payloadDeserialized = JsonUtility.FromJson<UnityPayload>(formattedPayload);
+            if (string.IsNullOrEmpty(payloadDeserialized.authType) is false)
+            {
+                var authType = AuthTypeRaw.ConvertToAuthType(payloadDeserialized.authType);
+                return authType;
+            }
+            else
+            {
+                Debug.LogError($"{nameof(WebGLExternalAuthenticator)} Couldn't find authType in payload.");
+                return null;
+            }
+        }
+
+        public void Dispose()
+        {
+            Debug.Log($"[{nameof(WebGLExternalAuthenticator)}] Dispose.");
+            _jsCommunicator.WebObjectReceived -= OnWebObjectReceived;
+        }
+        void IExternalAuthenticator.SetPlayPadEventListener(IPlayPadEventListener listener) => _connectionListener = listener;
     }
 }

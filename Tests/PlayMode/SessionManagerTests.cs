@@ -150,7 +150,7 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.EthAddress == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-            await _sut.TryReAuthenticateIfWalletChanged();
+            await _sut.TryReAuthenticateIfAuthDataChanged();
             currSess = _sut.CurrentSession.Value;
             Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
             Assert.AreEqual(_defaultClosestRegion, currSess.ClosestRegion);
@@ -168,7 +168,7 @@ namespace ElympicsLobby.Tests.PlayMode
             Assert.IsTrue(AuthType.ClientSecret == currSess.AuthData.AuthType);
             Assert.IsTrue(Capabilities.Ethereum == currSess.Capabilities);
             Assert.AreEqual(_defaultEnvironment, currSess.Environment);
-            await _sut.TryReAuthenticateIfWalletChanged();
+            await _sut.TryReAuthenticateIfAuthDataChanged();
             currSess = _sut.CurrentSession.Value;
             Assert.IsTrue(AuthType.EthAddress == currSess.AuthData.AuthType);
             Assert.AreEqual(_defaultClosestRegion, currSess.ClosestRegion);

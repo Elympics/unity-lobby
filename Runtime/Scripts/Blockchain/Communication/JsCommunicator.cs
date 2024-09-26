@@ -19,7 +19,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         private Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new Dictionary<string, List<IWebMessageReceiver>>();
 
         private int _requestCounter;
-        private const string ProtocolVersion = "0.1.0";
+        private const string ProtocolVersion = "0.2.0";
         private const string GameObjectName = "JsReceiver";
 
         private static JsCommunicator instance = null!;

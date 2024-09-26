@@ -29,15 +29,13 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         {
             switch (messageObject.type)
             {
-                case Communication.WebMessages.WalletConnection:
-                    OnWalletConnected(messageObject.message);
-                    break;
                 case Communication.WebMessages.TrustTransactionFinished:
                     OnTrustOperationFinished(messageObject.message);
                     break;
             }
         }
 
+        //TODO: usun to stad do TrustCommunicatora.
         private void OnTrustOperationFinished(string webMessageMessage)
         {
             var trustDeposit = JsonUtility.FromJson<TrustDepositTransactionFinishedWebMessage>(webMessageMessage);

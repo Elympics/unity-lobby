@@ -3,10 +3,13 @@ using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using Elympics;
 using ElympicsLobbyPackage.Authorization;
+using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Tournament.Util;
 using Elympics;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.ExternalCommunication.Tournament;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
+using UnityEngine;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
@@ -59,6 +62,12 @@ namespace ElympicsLobbyPackage.ExternalCommunication
                 };
             }
             return new ExternalAuthData(new AuthData(Guid.Empty,null,null,_authConfig.AuthType), result.device == "Mobile", (Capabilities)result.capabilities, result.environment, result.closestRegion, result.tournamentData?.ToTournamentInfo());
+        }
+
+        void IExternalAuthenticator.SetPlayPadEventListener(IPlayPadEventListener listener) => Debug.Log("Set PlayPad listener.");
+        void IDisposable.Dispose()
+        {
+
         }
     }
 }
