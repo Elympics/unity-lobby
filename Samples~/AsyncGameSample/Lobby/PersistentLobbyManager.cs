@@ -11,7 +11,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
     {
         public enum AppState { Lobby, Matchmaking, Gameplay }
 
-        private AuthorizationManager authorizationManager;
+        private AuthenticationManager authenticationManager;
         private LobbyUIManager lobbyUIManager;
 
         private AppState appState = AppState.Lobby;
@@ -31,29 +31,29 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         {
             ElympicsLobbyClient.Instance!.RoomsManager.MatchDataReceived += RememberMatchId;
 
-            authorizationManager = FindObjectOfType<AuthorizationManager>();
+            authenticationManager = FindObjectOfType<AuthenticationManager>();
             GameObject elympicsExternalCommunicator = ElympicsExternalCommunicator.Instance.gameObject;
-            authorizationManager.InitializeAuthorizationManager(elympicsExternalCommunicator.GetComponent<SessionManager>(), elympicsExternalCommunicator.GetComponent<Web3Wallet>());
+            authenticationManager.InitializeAuthenticationManager(elympicsExternalCommunicator.GetComponent<SessionManager>(), elympicsExternalCommunicator.GetComponent<Web3Wallet>());
             SetLobbyUIManager();
 
             ElympicsExternalCommunicator.Instance.GameStatusCommunicator?.ApplicationInitialized();
-            authorizationManager.AttemptStartAuthenticate().Forget();
+            authenticationManager.AttemptStartAuthenticate().Forget();
         }
 
         public void SetAppState(AppState newState)
         {
             appState = newState;
-            if (appState == AppState.Lobby && authorizationManager.StartAuthenticationFinished)
+            if (appState == AppState.Lobby && authenticationManager.StartAuthenticationFinished)
             {
                 SetLobbyUIManager();
-                authorizationManager.AttemptReAuthenticate();
+                authenticationManager.AttemptReAuthenticate().Forget();
             }
         }
 
         private void SetLobbyUIManager()
         {
             lobbyUIManager = FindObjectOfType<LobbyUIManager>();
-            authorizationManager.SetLobbyUIManager(lobbyUIManager);
+            authenticationManager.SetLobbyUIManager(lobbyUIManager);
         }
 
         private void RememberMatchId(MatchDataReceivedArgs obj)
@@ -61,6 +61,6 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             CachedMatchId = obj.MatchId;
         }
 
-        public void ConnectToWallet() => authorizationManager.ConnectToWallet().Forget();
+        public void ConnectToWallet() => authenticationManager.ConnectToWallet().Forget();
     }
 }

@@ -7,7 +7,7 @@ using System;
 
 namespace ElympicsLobbyPackage.Sample.AsyncGame
 {
-    public class AuthorizationManager : MonoBehaviour
+    public class AuthenticationManager : MonoBehaviour
     {
         private SessionManager sessionManager;
         private Web3Wallet web3Wallet;
@@ -15,7 +15,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         public bool StartAuthenticationFinished { get; private set; } = false;
 
-        public void InitializeAuthorizationManager(SessionManager sessionManager, Web3Wallet web3Wallet)
+        public void InitializeAuthenticationManager(SessionManager sessionManager, Web3Wallet web3Wallet)
         {
             this.sessionManager = sessionManager;
             this.web3Wallet = web3Wallet;
@@ -28,12 +28,15 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         public async UniTask AttemptStartAuthenticate()
         {
+            ElympicsLobbyClient.Instance.WebSocketSession.Disconnected += (data) => OnConnectionChanged(data);
+            ElympicsLobbyClient.Instance.WebSocketSession.Connected += () => OnConnectionChanged(null);
+
             lobbyUIManager.SetAuthenticationScreenActive(true);
+
             if (!ElympicsLobbyClient.Instance.IsAuthenticated || !ElympicsLobbyClient.Instance.WebSocketSession.IsConnected)
             {
                 await sessionManager.AuthenticateFromExternalAndConnect();
             }
-            lobbyUIManager.SetAuthenticationScreenActive(false);
 
             lobbyUIManager.SetLobbyUIVariant(sessionManager);
             web3Wallet.WalletConnectionUpdated += ReactToAuthenticationChange;
@@ -41,26 +44,14 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             StartAuthenticationFinished = true;
         }
 
-        public async void AttemptReAuthenticate()
+        public async UniTask AttemptReAuthenticate()
         {
-            lobbyUIManager.SetAuthenticationScreenActive(true);
             await sessionManager.TryReAuthenticateIfWalletChanged();
             lobbyUIManager.SetLobbyUIVariant(sessionManager);
-            lobbyUIManager.SetAuthenticationScreenActive(false);
-        }
-
-        public void ReactToAuthenticationChange(WalletConnectionStatus status)
-        {
-            if (PersistentLobbyManager.Instance.CurrentAppState == PersistentLobbyManager.AppState.Lobby)
-            {
-                AttemptReAuthenticate();
-            }
         }
 
         public async UniTask ConnectToWallet()
         {
-            lobbyUIManager.SetAuthenticationScreenActive(true);
-
             try
             {
                 await sessionManager.ConnectToWallet();
@@ -75,8 +66,27 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             {
                 Debug.LogError(e);
             }
+        }
 
-            lobbyUIManager.SetAuthenticationScreenActive(false);
+        private void ReactToAuthenticationChange(WalletConnectionStatus status)
+        {
+            if (PersistentLobbyManager.Instance.CurrentAppState == PersistentLobbyManager.AppState.Lobby)
+            {
+                AttemptReAuthenticate().Forget();
+            }
+        }
+
+        private void OnConnectionChanged(DisconnectionData? disconnectionData)
+        {
+            if (!disconnectionData.HasValue)
+            {
+                lobbyUIManager.SetAuthenticationScreenActive(false);
+            }
+            else
+            {
+                if (disconnectionData.Value.Reason == DisconnectionReason.ClientRequest)
+                    lobbyUIManager.SetAuthenticationScreenActive(true);
+            }
         }
     }
 }
