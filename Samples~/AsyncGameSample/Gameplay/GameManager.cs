@@ -4,19 +4,13 @@ using Elympics;
 
 namespace ElympicsLobbyPackage.Sample.AsyncGame
 {
-    public class GameManager : ElympicsMonoBehaviour, IUpdatable, IInitializable
+    public class GameManager : ElympicsMonoBehaviour, IUpdatable
     {
         [SerializeField] private PlayerManager playerManager;
         [SerializeField] private MapManager mapManager;
         [SerializeField] private DisplayManager displayManager;
         [SerializeField] private Timer timer;
         [SerializeField] private ScoreManager scoreManager;
-
-        public void Initialize()
-        {
-            if (Elympics.IsClient)
-                PersistentLobbyManager.Instance?.SetAppState(PersistentLobbyManager.AppState.Gameplay);
-        }
 
         public void ElympicsUpdate()
         {
@@ -54,7 +48,6 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         {
             if (Elympics.IsServer) Elympics.EndGame(new ResultMatchPlayerDatas(new List<ResultMatchPlayerData> { new ResultMatchPlayerData { MatchmakerData = new float[1] { scoreManager.Score } } }));
             displayManager.ShowGameOver();
-            if (Elympics.IsClient) ElympicsExternalCommunicator.Instance?.GameStatusCommunicator?.GameFinished(scoreManager.Score);
         }
     }
 }

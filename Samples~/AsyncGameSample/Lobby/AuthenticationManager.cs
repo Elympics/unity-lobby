@@ -70,7 +70,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         private void ReactToAuthenticationChange(WalletConnectionStatus status)
         {
-            if (PersistentLobbyManager.Instance.CurrentAppState == PersistentLobbyManager.AppState.Lobby)
+            if (PersistentLobbyManager.Instance.IsAuthChangePossible)
             {
                 AttemptReAuthenticate().Forget();
             }

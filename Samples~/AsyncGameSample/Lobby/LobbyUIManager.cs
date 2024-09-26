@@ -28,7 +28,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         private void Start()
         {
             if (PersistentLobbyManager.Instance != null)
-                PersistentLobbyManager.Instance.SetAppState(PersistentLobbyManager.AppState.Lobby);
+                PersistentLobbyManager.Instance.ChangeAuthAvialability(true);
         }
 
         public void SetAuthenticationScreenActive(bool newValue) => authenticationInProgressScreen.SetActive(newValue);
@@ -78,7 +78,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
         [UsedImplicitly]
         public async void PlayGame()
         {
-            PersistentLobbyManager.Instance.SetAppState(PersistentLobbyManager.AppState.Matchmaking);
+            PersistentLobbyManager.Instance.ChangeAuthAvialability(false);
             matchmakingInProgressScreen.SetActive(true);
             await ElympicsLobbyClient.Instance.RoomsManager.StartQuickMatch(playQueue);
         }

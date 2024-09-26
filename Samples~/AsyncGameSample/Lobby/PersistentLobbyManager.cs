@@ -9,15 +9,13 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 {
     public class PersistentLobbyManager : MonoBehaviour
     {
-        public enum AppState { Lobby, Matchmaking, Gameplay }
-
         private AuthenticationManager authenticationManager;
         private LobbyUIManager lobbyUIManager;
 
-        private AppState appState = AppState.Lobby;
-        public Guid CachedMatchId { get; private set; }
+        private bool isAuthChangePossible = true;
+        public bool IsAuthChangePossible => isAuthChangePossible;
 
-        public AppState CurrentAppState => appState;
+        public Guid CachedMatchId { get; private set; }
 
         public static PersistentLobbyManager Instance;
 
@@ -40,10 +38,10 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
             authenticationManager.AttemptStartAuthenticate().Forget();
         }
 
-        public void SetAppState(AppState newState)
+        public void ChangeAuthAvialability(bool newState)
         {
-            appState = newState;
-            if (appState == AppState.Lobby && authenticationManager.StartAuthenticationFinished)
+            isAuthChangePossible = newState;
+            if (isAuthChangePossible && authenticationManager.StartAuthenticationFinished)
             {
                 SetLobbyUIManager();
                 authenticationManager.AttemptReAuthenticate().Forget();
