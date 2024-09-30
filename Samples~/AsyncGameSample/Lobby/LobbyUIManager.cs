@@ -27,8 +27,7 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         private void Start()
         {
-            if (PersistentLobbyManager.Instance != null)
-                PersistentLobbyManager.Instance.ChangeAuthAvialability(true);
+            PersistentLobbyManager.Instance.ChangeAuthAvialability(true);
         }
 
         public void SetAuthenticationScreenActive(bool newValue) => authenticationInProgressScreen.SetActive(newValue);

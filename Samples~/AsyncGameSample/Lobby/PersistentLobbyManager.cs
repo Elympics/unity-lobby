@@ -40,7 +40,11 @@ namespace ElympicsLobbyPackage.Sample.AsyncGame
 
         public void ChangeAuthAvialability(bool newState)
         {
+            if (isAuthChangePossible == newState)
+                return;
+
             isAuthChangePossible = newState;
+
             if (isAuthChangePossible && authenticationManager.StartAuthenticationFinished)
             {
                 SetLobbyUIManager();
