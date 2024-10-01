@@ -11,7 +11,7 @@ public class EndGameView : MonoBehaviour
 {
     private readonly string formattedRespectMessage = "You got {0} respect";
 
-    [SerializeField] private int lobbySceneIndex = 0;
+    [SerializeField] private string lobbySceneName = "AsyncGameLobbyScene";
     [SerializeField] private TextMeshProUGUI respectText;
 
     public void Show()
@@ -23,7 +23,7 @@ public class EndGameView : MonoBehaviour
     [UsedImplicitly] // by BackToLobbyButton
     public void ReturnToLobby()
     {
-        SceneManager.LoadScene(lobbySceneIndex);
+        SceneManager.LoadScene(lobbySceneName);
     }
 
     private async UniTask DisplayRespect()
