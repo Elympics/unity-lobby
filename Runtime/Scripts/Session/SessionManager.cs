@@ -202,7 +202,7 @@ namespace ElympicsLobbyPackage.Session
                 await AuthWithCached(result.AuthData, false, result);
                 return;
             }
-            CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment, result.IsMobile, _region!);
+            CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment, result.IsMobile, _region!, result.TournamentInfo);
             Debug.Log($"{nameof(SessionManager)} External message did not return auth token. Using sdk to authenticate user.");
         }
         private async UniTask SetClosestRegion(string externalClosestRegion)
@@ -342,7 +342,7 @@ namespace ElympicsLobbyPackage.Session
                 var enviro = external?.Environment ?? CurrentSession!.Value.Environment;
                 var isMobile = external?.IsMobile ?? CurrentSession!.Value.IsMobile;
                 var closestRegion = external?.ClosestRegion ?? CurrentSession!.Value.ClosestRegion;
-                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, accountWallet, signWallet, capa, enviro, isMobile, closestRegion);
+                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, accountWallet, signWallet, capa, enviro, isMobile, closestRegion, external?.TournamentInfo);
             }
             catch (Exception e)
             {
@@ -364,7 +364,7 @@ namespace ElympicsLobbyPackage.Session
                 if (_lobbyWrapper.IsAuthenticated)
                 {
                     SaveNewAuthData();
-                    CurrentSession = new SessionInfo(_lobbyWrapper.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion);
+                    CurrentSession = new SessionInfo(_lobbyWrapper.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, null);
                 }
                 else
                 {
@@ -397,7 +397,7 @@ namespace ElympicsLobbyPackage.Session
                     AuthType = AuthType.ClientSecret,
                     Region = new RegionData(_region)
                 });
-                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion);
+                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, null);
             }
             catch (Exception e)
             {
