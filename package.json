@@ -1,6 +1,6 @@
 {
   "name": "com.daftmobile.external-communicator",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Elympics External Communicator is an implementation of Elympics authorization and wallet communication",
   "displayName": "Elympics External Communicator",
   "unity": "2021.3",
@@ -13,7 +13,14 @@
   "license": "See LICENSE.md file",
   "keywords": [
     "multiplayer",
-    "networking"
+    "Web3"
+  ],
+  "samples": [
+    {
+      "displayName": "Asynchronous game lobby sample with leaderboards",
+      "description": "Default implementation of asynchronous game lobby with leaderboards, ready to use and adjust to developer's needs",
+      "path": "Samples~/AsyncGameSample"
+    }
   ],
   "dependencies": {
     "com.daftmobile.elympics": "0.13.3"
