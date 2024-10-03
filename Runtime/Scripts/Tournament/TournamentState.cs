@@ -1,3 +1,4 @@
+#nullable enable
 using JetBrains.Annotations;
 namespace ElympicsLobbyPackage.Tournament
 {

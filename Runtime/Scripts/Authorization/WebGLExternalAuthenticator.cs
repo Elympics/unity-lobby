@@ -5,10 +5,12 @@ using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.JWT;
+using ElympicsLobbyPackage.Tournament;
 using ElympicsLobbyPackage.Tournament.Util;
 using UnityEngine;
 using ElympicsLobbyPackage.Session;
 using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
+using ElympicsLobbyPackage.Utils;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
@@ -35,13 +37,11 @@ namespace ElympicsLobbyPackage.ExternalCommunication
                 var isMobile = result.device == "mobile";
                 var closestRegion = result.closestRegion;
                 ThrowIfInvalidResponse(result);
-                var payload = JsonWebToken.Decode(result.authData.jwt, string.Empty, false);
-                var formattedPayload = AuthTypeRaw.ToUnityNaming(payload);
-                var payloadDeserialized = JsonUtility.FromJson<UnityPayload>(formattedPayload);
+                var payloadDeserialized = result.authData.jwt.ExtractUnityPayloadFromJwt();
                 var authType = AuthTypeRaw.ConvertToAuthType(payloadDeserialized.authType);
                 var cached = new AuthData(Guid.Parse(result.authData.userId), result.authData.jwt, result.authData.nickname, authType);
                 Debug.Log($"{nameof(WebGLExternalAuthenticator)} External authentication result: AuthType: {authType} UserId: {result.authData.userId} NickName: {result.authData.nickname}.");
-                return new ExternalAuthData(cached, isMobile, capabilities, result.environment, closestRegion, null);
+                return new ExternalAuthData(cached, isMobile, capabilities, result.environment, closestRegion, result.tournamentData.ToTournamentInfo());
             }
             catch (ResponseException e)
             {
@@ -53,7 +53,7 @@ namespace ElympicsLobbyPackage.ExternalCommunication
         }
         private void ThrowIfInvalidResponse(InitializationResponse result)
         {
-            if (!string.IsNullOrEmpty(result.authData.jwt))
+            if (string.IsNullOrEmpty(result.authData.jwt))
                 throw new SessionManagerFatalError("External message did not return authorization token. Unable to authorize.");
             var payload = JsonWebToken.Decode(result.authData.jwt, string.Empty, false);
             if (payload is null)

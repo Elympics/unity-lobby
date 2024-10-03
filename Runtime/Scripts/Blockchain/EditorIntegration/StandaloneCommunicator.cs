@@ -57,7 +57,9 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
             await UniTask.Delay(_config.ConnectionDelay);
             if (!_config.AcceptsConnection)
                 throw new Exception("User declined the connection");
-            var chainBigInt = BigInteger.Parse(_config.ChainId);
+            var canParse = BigInteger.TryParse(_config.ChainId,out var chainBigInt);
+            if (canParse is false)
+                throw new ArgumentException($"Cannot parse chainId provided in {nameof(StandaloneBrowserJsConfig)}");
             InitializeWeb3IfNeeded(chainBigInt);
             return new ConnectionResponse()
             {

@@ -19,8 +19,8 @@ namespace ElympicsLobby.Tests.PlayMode
     {
         public override string SceneName => "ElympicsTournamentTestScene";
         private ElympicsTournament? _sut;
-        private Guid _owner = Guid.Parse("000000-0000-0000-0000-000000000001");
-        private Guid _participant1 = Guid.Parse("000000-0000-0000-0000-000000000002");
+        private Guid _owner = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        private Guid _participant1 = Guid.Parse("00000000-0000-0000-0000-000000000002");
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -32,28 +32,85 @@ namespace ElympicsLobby.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Test() => UniTask.ToCoroutine(async () =>
+        public IEnumerator GetTournament_NotStarted() => UniTask.ToCoroutine(async () =>
         {
-            Debug.Log("This is Test");
-            Debug.Log("This is Test");
+            var created = DateTimeOffset.Now.AddMinutes(1);
+            var start = DateTimeOffset.Now.AddMinutes(2);
+            var end = DateTimeOffset.Now.AddMinutes(3);
+            var tournamentInfo = CreateTournament(created, start, end);
+            await _sut!.Initialize(tournamentInfo);
+            AssertPlayState(TournamentPlayState.NotStarted);
+        });
+
+        [UnityTest]
+        public IEnumerator GetTournament_NotStarted_WaitForStart() => UniTask.ToCoroutine(async () =>
+        {
+            var created = DateTimeOffset.Now.AddSeconds(1);
+            var start = DateTimeOffset.Now.AddSeconds(2);
+            var end = DateTimeOffset.Now.AddSeconds(3);
+            var tournamentInfo = CreateTournament(created, start, end);
+            await _sut!.Initialize(tournamentInfo);
+            Assert.AreEqual((int)TournamentPlayState.NotStarted, (int)_sut.PlayState);
+            var startEventCalled = false;
+            _sut.TournamentStarted += () => startEventCalled = true;
+            await UniTask.WaitUntil(() => DateTimeOffset.Now > start);
+            Assert.IsTrue(startEventCalled);
+        });
+
+        [UnityTest]
+        public IEnumerator GetTournament_Started_WaitForFinish() => UniTask.ToCoroutine(async () =>
+        {
+            var created = DateTimeOffset.Now.AddSeconds(-10);
+            var start = DateTimeOffset.Now.AddSeconds(-2);
+            var end = DateTimeOffset.Now.AddSeconds(1);
+            var tournamentInfo = CreateTournament(created, start, end);
+            await _sut!.Initialize(tournamentInfo);
+            var finishedEventCalled = false;
+            _sut.TournamentFinished += () => finishedEventCalled = true;
+            await UniTask.WaitUntil(() => DateTimeOffset.Now > end);
+            Assert.IsTrue(finishedEventCalled);
+        });
+
+        [UnityTest]
+        public IEnumerator GetTournament_NotStarted_WalkThroughEntireTournament() => UniTask.ToCoroutine(async () =>
+        {
+            var created = DateTimeOffset.Now.AddSeconds(-10);
+            var start = DateTimeOffset.Now.AddSeconds(1);
+            var end = DateTimeOffset.Now.AddSeconds(2);
+            var tournamentInfo = CreateTournament(created, start, end);
+            await _sut!.Initialize(tournamentInfo);
+            var startEventCalled = false;
+            var finishedEventCalled = false;
+            _sut.TournamentStarted += () => startEventCalled = true;
+            _sut.TournamentFinished += () => finishedEventCalled = true;
+            await UniTask.WaitUntil(() => DateTimeOffset.Now > start);
+            Assert.IsTrue(startEventCalled);
+            Assert.IsFalse(finishedEventCalled);
+            startEventCalled = false;
+            finishedEventCalled = false;
+            await UniTask.WaitUntil(() => DateTimeOffset.Now > end);
+            Assert.IsTrue(finishedEventCalled);
+            Assert.IsFalse(startEventCalled);
         });
 
         private TournamentInfo CreateTournament(DateTimeOffset created, DateTimeOffset start, DateTimeOffset end)
         {
             return new TournamentInfo
             {
+                Id = default,
                 LeaderboardCapacity = 5,
                 Name = "Test",
+                LockedReason = null,
+                PrizePool = null,
                 OwnerId = _owner,
                 State = TournamentState.Created,
-                CreateDate = created,
                 StartDate = start,
                 EndDate = end,
-                Participants = new List<Guid>()
-                {
-                    _participant1
-                }
+                TonDetails = null,
+                EvmDetails = null
             };
         }
+
+        private void AssertPlayState(TournamentPlayState expected) => Assert.AreEqual((int)expected, (int)_sut!.PlayState);
     }
 }

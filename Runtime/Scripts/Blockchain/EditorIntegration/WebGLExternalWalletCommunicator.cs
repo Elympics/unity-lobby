@@ -1,5 +1,4 @@
 #nullable enable
-using System.Numerics;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Blockchain.Communication;
@@ -7,7 +6,6 @@ using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
-using SCS;
 using UnityEngine;
 using TransactionToSign = ElympicsLobbyPackage.Blockchain.Communication.DTO.TransactionToSign;
 
@@ -31,10 +29,10 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         {
             switch (messageObject.type)
             {
-                case WebMessages.WalletConnection:
+                case Communication.WebMessages.WalletConnection:
                     OnWalletConnected(messageObject.message);
                     break;
-                case WebMessages.TrustTransactionFinished:
+                case Communication.WebMessages.TrustTransactionFinished:
                     OnTrustOperationFinished(messageObject.message);
                     break;
             }

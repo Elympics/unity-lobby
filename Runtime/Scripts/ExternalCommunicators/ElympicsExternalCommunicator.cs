@@ -7,6 +7,8 @@ using ElympicsLobbyPackage.Blockchain.EditorIntegration;
 using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
+using ElympicsLobbyPackage.ExternalCommunication.Leaderboard;
+using ElympicsLobbyPackage.ExternalCommunication.Tournament;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -49,7 +51,14 @@ namespace ElympicsLobbyPackage
         [PublicAPI]
         public IExternalTrustSmartContractOperations? TrustCommunicator;
 
+        [PublicAPI]
+        public IExternalTournamentCommunicator? TournamentCommunicator;
+
+        [PublicAPI]
+        public IExternalLeaderboardCommunicator? LeaderboardCommunicator;
+
         [SerializeField] private StandaloneExternalAuthorizerConfig standaloneAuthConfig = null!;
+        [SerializeField] private StandaloneExternalTournamentConfig standaloneTournamentConfig = null!;
         [SerializeField] private StandaloneBrowserJsConfig standaloneWalletConfig = null!;
 
         private JsCommunicator _jsCommunicator = null!;
@@ -81,13 +90,18 @@ namespace ElympicsLobbyPackage
                 var webGLContractOperations = new WebGLExternalContractOperations(_jsCommunicator);
                 TokenCommunicator = new Erc20SmartContractCommunicator(webGLContractOperations, WalletCommunicator);
                 TrustCommunicator = new WebGlTrustSmartContractCommunicator(_jsCommunicator, _lobby);
+                TournamentCommunicator = new WebGLTournamentCommunicator(_jsCommunicator);
+                LeaderboardCommunicator = new WebGLLeaderboardCommunicator(_jsCommunicator);
+
 #else
                 var standaloneCommunicator = new StandaloneCommunicator(standaloneWalletConfig);
-                ExternalAuthenticator = new StandaloneExternalAuthenticator(standaloneAuthConfig);
+                ExternalAuthenticator = new StandaloneExternalAuthenticator(standaloneAuthConfig, standaloneTournamentConfig);
                 WalletCommunicator = standaloneCommunicator;
                 TokenCommunicator = new Erc20SmartContractCommunicator(standaloneCommunicator, standaloneCommunicator);
                 TrustCommunicator = new StandardExternalTrustSmartContractOperations(_scsWrapper);
                 GameStatusCommunicator = new StandaloneExternalGameStatusCommunicator();
+                TournamentCommunicator = customTournamentCommunicator != null ? customTournamentCommunicator : new StandaloneTournamentCommunicator(standaloneTournamentConfig, _jsCommunicator);
+                LeaderboardCommunicator = customLeaderboardCommunicator != null ? customLeaderboardCommunicator : new StandaloneLeaderboardCommunicator();
 #endif
                 Instance = this;
                 WalletCommunicator.SetPlayPadEventListener(this);
@@ -97,6 +111,12 @@ namespace ElympicsLobbyPackage
         }
 
 #if UNITY_EDITOR || !UNITY_WEBGL
+        [Header("Optional. Work only on UnityEditor")]
+        [SerializeField] private CustomStandaloneLeaderboardCommunicatorBase? customLeaderboardCommunicator;
+
+        [SerializeField] private CustomStandaloneTournamentCommunicatorBase? customTournamentCommunicator;
+
+
         [PublicAPI]
         public void SetCustomExternalAuthenticator(IExternalAuthenticator customExternalAuthenticator) => ExternalAuthenticator = customExternalAuthenticator ?? throw new ArgumentNullException(nameof(customExternalAuthenticator));
         [PublicAPI]

@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
@@ -14,6 +15,8 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
     {
         public event Action<string>? ResponseObjectReceived;
         public event Action<WebMessageObject>? WebObjectReceived;
+
+        private Dictionary<string, List<IWebMessageReceiver>> _webMessageReceivers = new Dictionary<string, List<IWebMessageReceiver>>();
 
         private int _requestCounter;
         private const string ProtocolVersion = "0.1.0";
@@ -42,7 +45,8 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
             var ticket = _requestCounter;
             ++_requestCounter;
             var message = _messageFactory.GenerateRequestMessageJson(ticket, messageType, address, payload);
-            Debug.Log($"[{nameof(JsCommunicator)}] Send {messageType} message: {message}");
+            Debug.Log($"[{nameof(JsCommunicator)}] Send Request {messageType} message: {message}");
+            _dispatcher.RegisterTicket(ticket);
             DispatchHandleMessage(message);
             return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket);
         }
@@ -52,9 +56,28 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
             var message = _messageFactory.GetVoidMessageJson(messageType, payload);
 
             if (messageType is not VoidEventTypes.Debug)
-                Debug.Log($"[{nameof(JsCommunicator)}] Send {messageType} message: {message}");
+                Debug.Log($"[{nameof(JsCommunicator)}] Send Void {messageType} message: {message}");
 
             DispatchVoidMessage(message);
+        }
+
+        public void RegisterIWebEventReceiver(IWebMessageReceiver receiver, params string[] messageTypes)
+        {
+            foreach (var messageType in messageTypes)
+                if (_webMessageReceivers.TryGetValue(messageType, out var list))
+                {
+                    Debug.Log($"{receiver.GetType()} is registered to {messageType} Web Message.");
+                    list.Add(receiver);
+                }
+                else
+                {
+                    Debug.Log($"{receiver.GetType()} is added to listeners for {messageType} Web Message.");
+                    _webMessageReceivers.Add(messageType,
+                        new List<IWebMessageReceiver>()
+                        {
+                            receiver
+                        });
+                }
         }
 
         [UsedImplicitly]
@@ -62,7 +85,6 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         {
             try
             {
-                Debug.Log($"[{nameof(JsCommunicator)}] Handle Response.");
                 ResponseObjectReceived?.Invoke(responseObject);
             }
             catch (Exception e)
@@ -79,6 +101,8 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
                 Debug.Log($"[{nameof(JsCommunicator)}] Received Web Event {messageObject}.");
                 var message = JsonUtility.FromJson<WebMessageObject>(messageObject);
                 WebObjectReceived?.Invoke(message);
+                if (_webMessageReceivers.TryGetValue(message.type, out var listeners))
+                    listeners?.ForEach(x => x?.OnWebMessage(message));
             }
             catch (Exception e)
             {

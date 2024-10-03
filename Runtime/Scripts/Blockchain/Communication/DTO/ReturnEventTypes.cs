@@ -9,6 +9,9 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         public const string SendTransaction = "SendTransaction";
         public const string Handshake = "Handshake";
         public const string GetTrustState = "GetTrustState";
+        public const string GetLeaderboard = "GetLeaderboard";
+        public const string GetLeaderboardUserCentered = "GetLeaderboardUserCentered";
+        public const string GetLeaderboardUserHighScore = "GetLeaderboardUserHighScore";
     }
 
     public static class WebMessages
@@ -16,6 +19,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         public const string WalletConnection = "WalletConnection";
         public const string WebGLKeyboardInputControl = "WebGLKeyboardInputControl";
         public const string TrustTransactionFinished = "TrustTransactionFinished";
+        public const string TournamentUpdated = "TournamentUpdated";
     }
 
     public static class VoidEventTypes

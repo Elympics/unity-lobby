@@ -1,18 +1,23 @@
 using System;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
+using Elympics;
 using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.Tournament.Util;
 using Elympics;
+using Elympics.Models.Authentication;
+using ElympicsLobbyPackage.ExternalCommunication.Tournament;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
     public class StandaloneExternalAuthenticator : IExternalAuthenticator
     {
-        private readonly StandaloneExternalAuthorizerConfig _config;
-        public StandaloneExternalAuthenticator(StandaloneExternalAuthorizerConfig config)
+        private readonly StandaloneExternalAuthorizerConfig _authConfig;
+        private readonly StandaloneExternalTournamentConfig _tournamentConfig;
+        public StandaloneExternalAuthenticator(StandaloneExternalAuthorizerConfig authConfig,StandaloneExternalTournamentConfig tournamentConfig)
         {
-            _config = config;
+            _authConfig = authConfig;
+            _tournamentConfig = tournamentConfig;
         }
 
         public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
@@ -24,35 +29,36 @@ namespace ElympicsLobbyPackage.ExternalCommunication
             var result = await UniTask.FromResult(new InitializationResponse
             {
                 device = "desktop",
-                authData = _config.Capabilities is Capabilities.None ? default : new AuthDataRaw()
+                authData = _authConfig.Capabilities is Capabilities.None ? default : new AuthDataRaw()
                 {
                     nickname = "StandAloneNickname",
                     jwt = "",
                     userId = Guid.NewGuid().ToString(),
                 },
-                capabilities = (int)_config.Capabilities,
-                closestRegion = _config.ClosestRegion
+                capabilities = (int)_authConfig.Capabilities,
+                closestRegion = _authConfig.ClosestRegion
             });
-            if (_config.IsTournamentAvailable)
+            if (_tournamentConfig.IsTournamentAvailable)
             {
                 result.tournamentData = new TournamentDataDto
                 {
-                    leaderboardCapacity = 5,
-                    name = _config.TournamentName,
-                    ownerId = _config.OwnerId,
-                    state = _config.TournamentState,
-                    createDate = _config.CreatedDate,
-                    startDate = _config.StartDate,
-                    endDate = _config.EndDate,
-                    participants = _config.Participants,
+                    id = _tournamentConfig.Id,
+                    gameId = ElympicsConfig.Load().GetCurrentGameConfig().GameId,
+                    leaderboardCapacity = _tournamentConfig.LeaderboardCapacity,
+                    name = _tournamentConfig.TournamentName,
+                    ownerId = _tournamentConfig.OwnerId,
+                    state = (int)_tournamentConfig.TournamentState,
+                    prizes = _tournamentConfig.Prizes,
+                    createDate = _tournamentConfig.CreatedDate,
+                    startDate = _tournamentConfig.StartDate,
+                    endDate = _tournamentConfig.EndDate,
+                    isDefault = _tournamentConfig.IsDefault,
+                    lockedReason = _tournamentConfig.LockedReason,
+                    tonDetailDto = _tournamentConfig.TonDetailsAvailable ? _tournamentConfig.TonDetails : null,
+                    evmDetailsDto = _tournamentConfig.EvmDetailsAvailable ? _tournamentConfig.EvmDetails : null,
                 };
             }
-            await ElympicsLobbyClient.Instance!.ConnectToElympicsAsync(new ConnectionData()
-            {
-                AuthType = _config.AuthType
-            });
-            return new ExternalAuthData(ElympicsLobbyClient.Instance.AuthData, result.device == "Mobile", (Capabilities)result.capabilities, result.environment, result.closestRegion, result.tournamentData?.ToTournamentInfo());
-
+            return new ExternalAuthData(new AuthData(Guid.Empty,null,null,_authConfig.AuthType), result.device == "Mobile", (Capabilities)result.capabilities, result.environment, result.closestRegion, result.tournamentData?.ToTournamentInfo());
         }
     }
 }

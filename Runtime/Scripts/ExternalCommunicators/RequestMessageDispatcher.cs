@@ -1,6 +1,8 @@
 #nullable enable
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.Blockchain.EditorIntegration;
 using Cysharp.Threading.Tasks;
@@ -11,31 +13,39 @@ namespace ElympicsLobbyPackage.ExternalCommunication
     internal class RequestMessageDispatcher
     {
         private readonly ConcurrentDictionary<int, Response> _ticketStatus = new();
-        private int _requestCounter = 0;
+        private readonly List<int> _pendingTickets = new();
+        private readonly object _lock = new();
 
         public RequestMessageDispatcher(IJsCommunicatorRetriever messageRetriever)
         {
             messageRetriever.ResponseObjectReceived += OnResponseObjectReceived;
         }
 
+        public void RegisterTicket(int ticket)
+        {
+            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Register pending ticket {ticket}");
+            lock (_lock)
+                _pendingTickets.Add(ticket);
+        }
+
         public async UniTask<TReturn> RequestUniTaskOrThrow<TReturn>(int ticket)
         {
-            Debug.Log($"[ApiConnect][{ticket}] request task");
+            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Request task {ticket}");
             await UniTask.WaitUntil(() => IsWaitingForResponse(ticket) is false);
             if (IsErrorResponse(ticket, out var code))
             {
-                Debug.Log($"[ApiConnect][{ticket}] found error in response: {ticket}");
-                throw new ResponseException(code, GetErrorDescription(ticket));
+                Debug.Log($"[{nameof(RequestMessageDispatcher)}] found error in response: {ticket}");
+                var errorMessage = GetErrorDescription(ticket);
+                _ticketStatus.TryRemove(ticket, out _);
+                throw new ResponseException(code, errorMessage);
             }
             var response = GetResponseData<TReturn>(ticket);
+            _ticketStatus.TryRemove(ticket, out _);
             UniTask.ReturnToMainThread();
             return response;
         }
 
-        private bool IsWaitingForResponse(int ticket)
-        {
-            return _ticketStatus.ContainsKey(ticket) is false;
-        }
+        private bool IsWaitingForResponse(int ticket) => _ticketStatus.ContainsKey(ticket) is false;
 
         private string GetErrorDescription(int ticket)
         {
@@ -49,17 +59,29 @@ namespace ElympicsLobbyPackage.ExternalCommunication
         }
         private void OnResponseObjectReceived(string responseObject)
         {
-            Debug.Log($"[ApiConnector] Response received: {responseObject}");
+            Debug.Log($"[{nameof(RequestMessageDispatcher)}] Response received: {responseObject}");
             var response = JsonUtility.FromJson<Response>(responseObject);
+            lock (_lock)
+            {
+                var isPending = _pendingTickets.Any(x => x == response.ticket);
+                if (isPending is false)
+                {
+                    Debug.LogError($"Response {response} is not awaited by dispatcher. Discarding message.");
+                    return;
+                }
+                _pendingTickets.Remove(response.ticket);
+            }
             if (_ticketStatus.TryAdd(response.ticket, response) is false)
-                Debug.LogError($"Status map already contains response {response}.");
+                Debug.LogError($"Status map already contains response {response}. Discarding message");
         }
 
         private TReturn? GetResponseData<TReturn>(int ticket)
         {
-            var responseData = _ticketStatus[ticket];
+            var fetched = _ticketStatus.TryGetValue(ticket, out var responseData);
+            if (!fetched)
+                throw new ProtocolException($"No ticketStatus for {ticket} found in concurrent dictionary", string.Empty);
 
-            if (string.IsNullOrEmpty(responseData.response))
+            if (string.IsNullOrEmpty(responseData!.response))
                 throw new ProtocolException($"Response data is null or empty.", responseData.type);
 
             if (typeof(TReturn) == typeof(string))
