@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.JWT;
+using ElympicsLobbyPackage.Tournament.Util;
 using UnityEngine;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
@@ -14,13 +15,15 @@ namespace ElympicsLobbyPackage.ExternalCommunication
         private readonly JsCommunicator _jsCommunicator;
         public WebGLExternalAuthenticator(JsCommunicator jsCommunicator) => _jsCommunicator = jsCommunicator;
 
-        public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName)
+        public async UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion)
         {
             var message = new InitializationMessage
             {
                 gameId = gameId,
                 gameName = gameName,
                 versionName = versionName,
+                sdkVersion = sdkVersion,
+                lobbyPackageVersion = lobbyPackageVersion,
                 systemInfo = SystemInfoDataFactory.GetSystemInfoData(),
             };
             var result = await _jsCommunicator.SendRequestMessage<InitializationMessage, InitializationResponse>(ReturnEventTypes.Handshake, message);
@@ -30,7 +33,7 @@ namespace ElympicsLobbyPackage.ExternalCommunication
             if (result.error is not null)
             {
                 Debug.LogError($"{nameof(WebGLExternalAuthenticator)} Error from initialization: {result.error}. Using standard authorization.");
-                return new ExternalAuthData(null, isMobile, capabilities, result.environment, closestRegion);
+                return new ExternalAuthData(null, isMobile, capabilities, result.environment, closestRegion, result.tournamentData.ToTournamentInfo());
             }
             if (!string.IsNullOrEmpty(result.authData.jwt))
             {
@@ -38,7 +41,7 @@ namespace ElympicsLobbyPackage.ExternalCommunication
                 if (payload is null)
                 {
                     Debug.LogError($"{nameof(WebGLExternalAuthenticator)} Payload is null. Something is wrong.");
-                    return new ExternalAuthData(null, isMobile, capabilities, result.environment, closestRegion);
+                    return new ExternalAuthData(null, isMobile, capabilities, result.environment, closestRegion, null);
                 }
                 var formattedPayload = AuthTypeRaw.ToUnityNaming(payload);
                 var payloadDeserialized = JsonUtility.FromJson<UnityPayload>(formattedPayload);
@@ -47,12 +50,12 @@ namespace ElympicsLobbyPackage.ExternalCommunication
                     var authType = AuthTypeRaw.ConvertToAuthType(payloadDeserialized.authType);
                     var cached = new AuthData(Guid.Parse(result.authData.userId), result.authData.jwt, result.authData.nickname, authType);
                     Debug.Log($"{nameof(WebGLExternalAuthenticator)} External authentication result: AuthType: {authType} UserId: {result.authData.userId} NickName: {result.authData.nickname}.");
-                    return new ExternalAuthData(cached, isMobile, capabilities, result.environment, closestRegion);
+                    return new ExternalAuthData(cached, isMobile, capabilities, result.environment, closestRegion, null);
                 }
                 Debug.LogError($"{nameof(WebGLExternalAuthenticator)} Couldn't find authType in payload.");
             }
             Debug.Log($"{nameof(WebGLExternalAuthenticator)} External message did not return authorization token. Using sdk to authenticate user.");
-            return new ExternalAuthData(null, isMobile, capabilities, result.environment, closestRegion);
+            return new ExternalAuthData(null, isMobile, capabilities, result.environment, closestRegion, null);
         }
     }
 }

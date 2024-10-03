@@ -1,6 +1,7 @@
 #nullable enable
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
+using ElympicsLobbyPackage.Tournament;
 using JetBrains.Annotations;
 
 namespace ElympicsLobbyPackage.Session
@@ -15,10 +16,12 @@ namespace ElympicsLobbyPackage.Session
         public readonly string Environment;
         public readonly bool IsMobile;
         public readonly string ClosestRegion;
+        public readonly TournamentInfo? TournamentInfo;
 
         public SessionInfo(AuthData? authData, string? accountWallet, string? signWallet, Capabilities capabilities, string environment,
             bool isMobile,
-            string closestRegion)
+            string closestRegion,
+            TournamentInfo? tournamentInfo)
         {
             AuthData = authData;
             AccountWallet = accountWallet;
@@ -27,6 +30,7 @@ namespace ElympicsLobbyPackage.Session
             Environment = environment;
             IsMobile = isMobile;
             ClosestRegion = closestRegion;
+            TournamentInfo = tournamentInfo;
         }
 
         public bool IsAuthorized() => AuthData.AuthType is not (AuthType.ClientSecret or AuthType.None);

@@ -19,7 +19,7 @@ using UnityEngine;
 namespace ElympicsLobbyPackage.Session
 {
     [RequireComponent(typeof(Web3Wallet))]
-    [DefaultExecutionOrder(ExecutionOrders.SessionManager)]
+    [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.SessionManager)]
     public class SessionManager : MonoBehaviour
     {
         [PublicAPI]
@@ -85,7 +85,8 @@ namespace ElympicsLobbyPackage.Session
             try
             {
                 var availableRegions = await ElympicsRegions.GetAvailableRegions();
-                if (availableRegions == null || availableRegions.Count == 0)
+                if (availableRegions == null
+                    || availableRegions.Count == 0)
                     return string.Empty;
 
                 var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
@@ -151,7 +152,7 @@ namespace ElympicsLobbyPackage.Session
                 else
                     await TryConnectToWalletOrAnonymous(address);
             }
-            catch (ResponseException e)
+            catch (ResponseException _)
             {
                 throw new WalletConnectionException("Wallet has to be connected. Use ConnectWallet.");
             }
@@ -182,6 +183,8 @@ namespace ElympicsLobbyPackage.Session
         private async UniTask TryCheckExternalAuthentication()
         {
             Debug.Log($"{nameof(SessionManager)} Check external authentication.");
+            var sdkVersion = ElympicsConfig.SdkVersion;
+            var lobbyPackageVersion = LobbyPackageVersionRetriever.GetVersionStringFromAssembly();
             var config = ElympicsConfig.LoadCurrentElympicsGameConfig();
             var gameName = config.GameName;
             var gameId = config.GameId;
@@ -190,7 +193,7 @@ namespace ElympicsLobbyPackage.Session
             if (ExternalAuthenticator is null)
                 throw new Exception($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthenticator)}");
 #endif
-            var result = await ExternalAuthenticator.InitializationMessage(gameId, gameName, versionName);
+            var result = await ExternalAuthenticator.InitializationMessage(gameId, gameName, versionName, sdkVersion, lobbyPackageVersion);
 
             await SetClosestRegion(result.ClosestRegion);
 
@@ -199,7 +202,7 @@ namespace ElympicsLobbyPackage.Session
                 await AuthWithCached(result.AuthData, false, result);
                 return;
             }
-            CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment, result.IsMobile, _region!);
+            CurrentSession = new SessionInfo(null, null, null, result.Capabilities, result.Environment, result.IsMobile, _region!, result.TournamentInfo);
             Debug.Log($"{nameof(SessionManager)} External message did not return auth token. Using sdk to authenticate user.");
         }
         private async UniTask SetClosestRegion(string externalClosestRegion)
@@ -222,7 +225,7 @@ namespace ElympicsLobbyPackage.Session
             Debug.Log($"Closest region is {_region}");
         }
 
-        private async UniTask WalletAuthentication()
+        private async UniTask WalletAuthentication() //
         {
             try
             {
@@ -339,7 +342,7 @@ namespace ElympicsLobbyPackage.Session
                 var enviro = external?.Environment ?? CurrentSession!.Value.Environment;
                 var isMobile = external?.IsMobile ?? CurrentSession!.Value.IsMobile;
                 var closestRegion = external?.ClosestRegion ?? CurrentSession!.Value.ClosestRegion;
-                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, accountWallet, signWallet, capa, enviro, isMobile, closestRegion);
+                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, accountWallet, signWallet, capa, enviro, isMobile, closestRegion, external?.TournamentInfo);
             }
             catch (Exception e)
             {
@@ -361,7 +364,7 @@ namespace ElympicsLobbyPackage.Session
                 if (_lobbyWrapper.IsAuthenticated)
                 {
                     SaveNewAuthData();
-                    CurrentSession = new SessionInfo(_lobbyWrapper.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion);
+                    CurrentSession = new SessionInfo(_lobbyWrapper.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, null);
                 }
                 else
                 {
@@ -394,7 +397,7 @@ namespace ElympicsLobbyPackage.Session
                     AuthType = AuthType.ClientSecret,
                     Region = new RegionData(_region)
                 });
-                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion);
+                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, null);
             }
             catch (Exception e)
             {

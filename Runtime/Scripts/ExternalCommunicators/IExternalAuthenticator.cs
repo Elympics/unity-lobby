@@ -5,6 +5,6 @@ namespace ElympicsLobbyPackage.ExternalCommunication
 {
     public interface IExternalAuthenticator
     {
-        public UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName);
+        public UniTask<ExternalAuthData> InitializationMessage(string gameId, string gameName, string versionName, string sdkVersion, string lobbyPackageVersion);
     }
 }

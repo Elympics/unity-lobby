@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: StandaloneBrowserJsConfig
   m_EditorClassIdentifier: 
   _isWalletAvailable: 1
-  _overridePlayerPrefsPrivateKey: 0
   _acceptsEagerConnection: 0
   _acceptsConnection: 1
   _shouldConfirmSignatures: 1

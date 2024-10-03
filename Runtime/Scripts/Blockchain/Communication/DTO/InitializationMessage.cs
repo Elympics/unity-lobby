@@ -8,6 +8,8 @@ namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
         public string gameId;
         public string gameName;
         public string versionName;
+        public string sdkVersion;
+        public string lobbyPackageVersion;
         public SystemInfoData systemInfo;
     }
 }

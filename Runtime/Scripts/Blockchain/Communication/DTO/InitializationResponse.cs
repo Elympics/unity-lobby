@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
 namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
 {
@@ -8,10 +9,11 @@ namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
 	{
 		public AuthDataRaw authData;
 		public string? error;
-		public string device;
-		public string environment;
+		public string device = null!;
+		public string environment = null!;
 		public int capabilities;
-        public string closestRegion;
+        public string closestRegion = null!;
+        public TournamentDataDto tournamentData = null!;
     }
 
 	[Serializable]
@@ -21,4 +23,17 @@ namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
 		public string userId;
 		public string nickname;
 	}
+
+    [Serializable]
+    public class TournamentDataDto
+    {
+        public int leaderboardCapacity;
+        public string name = null!;
+        public string ownerId = null!;
+        public int state;
+        public string createDate = null!;
+        public string startDate = null!;
+        public string endDate = null!;
+        public List<string> participants = null!;
+    }
 }
