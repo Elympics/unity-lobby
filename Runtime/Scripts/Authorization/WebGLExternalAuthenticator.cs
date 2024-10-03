@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
 using ElympicsLobbyPackage.JWT;
+using ElympicsLobbyPackage.Tournament.Util;
 using UnityEngine;
 
 namespace ElympicsLobbyPackage.ExternalCommunication

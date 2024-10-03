@@ -1,9 +1,9 @@
 using System;
 using System.Globalization;
-using Elympics;
+using System.Linq;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 
-namespace ElympicsLobbyPackage
+namespace ElympicsLobbyPackage.Tournament.Util
 {
     public static class TournamentExt
     {
@@ -25,7 +25,7 @@ namespace ElympicsLobbyPackage
                 CreateDate = createdDate,
                 StartDate = startDate,
                 EndDate = endDate,
-                Participants = dto.participants
+                Participants = dto.participants.Select(Guid.Parse).ToList()
             };
         }
     }

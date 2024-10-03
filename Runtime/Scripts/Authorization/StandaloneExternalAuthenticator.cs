@@ -2,6 +2,7 @@ using System;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Authorization;
+using ElympicsLobbyPackage.Tournament.Util;
 
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
