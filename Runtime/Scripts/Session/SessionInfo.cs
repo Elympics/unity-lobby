@@ -1,7 +1,7 @@
 #nullable enable
-using Elympics;
 using Elympics.Models.Authentication;
 using ElympicsLobbyPackage.Authorization;
+using ElympicsLobbyPackage.Tournament;
 using JetBrains.Annotations;
 
 namespace ElympicsLobbyPackage.Session

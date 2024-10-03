@@ -12,7 +12,7 @@ using UnityEngine;
 namespace ElympicsLobbyPackage
 {
     [RequireComponent(typeof(JsCommunicator))]
-    [DefaultExecutionOrder(ExecutionOrders.ExternalCommunicator)]
+    [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.ExternalCommunicator)]
     public class ElympicsExternalCommunicator : MonoBehaviour, IWalletConnectionListener
     {
         [PublicAPI]

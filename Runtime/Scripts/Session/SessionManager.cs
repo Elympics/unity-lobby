@@ -19,7 +19,7 @@ using UnityEngine;
 namespace ElympicsLobbyPackage.Session
 {
     [RequireComponent(typeof(Web3Wallet))]
-    [DefaultExecutionOrder(ExecutionOrders.SessionManager)]
+    [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.SessionManager)]
     public class SessionManager : MonoBehaviour
     {
         [PublicAPI]

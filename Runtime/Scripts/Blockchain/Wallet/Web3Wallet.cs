@@ -15,7 +15,7 @@ using UnityEngine;
 namespace ElympicsLobbyPackage.Blockchain.Wallet
 {
     [RequireComponent(typeof(ISmartContractServiceWrapper))]
-    [DefaultExecutionOrder(ExecutionOrders.Web3Wallet)]
+    [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.Web3Wallet)]
     public class Web3Wallet : ElympicsEthSigner, IWallet
     {
         [PublicAPI]

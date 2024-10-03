@@ -4,7 +4,7 @@ using UnityEngine;
 namespace ElympicsLobbyPackage
 {
     [RequireComponent(typeof(SmartContractService))]
-    [DefaultExecutionOrder(ExecutionOrders.DefaultSmartContractServiceWrapper)]
+    [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.DefaultSmartContractServiceWrapper)]
     public class DefaultSmartContractServiceWrapper : MonoBehaviour, ISmartContractServiceWrapper
     {
         private SmartContractService _scs;

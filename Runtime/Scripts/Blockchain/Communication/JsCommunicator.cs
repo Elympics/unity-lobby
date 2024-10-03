@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain.Communication
 {
-    [DefaultExecutionOrder(ExecutionOrders.JsCommunicator)]
+    [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.JsCommunicator)]
     internal class JsCommunicator : MonoBehaviour, IJsCommunicatorRetriever
     {
         public event Action<string>? ResponseObjectReceived;

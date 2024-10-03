@@ -1,6 +1,7 @@
 #nullable enable
-using Elympics;
 using Elympics.Models.Authentication;
+using ElympicsLobbyPackage.Tournament;
+
 namespace ElympicsLobbyPackage.Authorization
 {
     public struct ExternalAuthData
