@@ -15,7 +15,7 @@ MonoBehaviour:
   chainConfigs:
   - chainId: 11155111
     decimals: 18
-    gameConfig: {fileID: 11400000, guid: fc93c5a18d6564c45b382386d2d9d87b, type: 2}
+    gameConfig: {fileID: 11400000, guid: d01aba099c8bc0e49b94994d1d80272f, type: 2}
     contracts:
     - Type: ERC20Token
       Address: 0xf158908549032149090D59EB86B7b38BD5D15621

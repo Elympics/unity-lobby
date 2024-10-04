@@ -1,12 +1,12 @@
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Elympics;
-using ElympicsLobbyPackage.Blockchain.EditorIntegration;
 using ElympicsLobbyPackage.ExternalCommunication;
+using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.Blockchain.Communication.DTO;
 using JetBrains.Annotations;
-using Nethereum.ABI;
 using SCS;
 using UnityEngine;
 
@@ -14,32 +14,40 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain.Wallet
 {
-    [RequireComponent(typeof(ISmartContractServiceWrapper))]
     [DefaultExecutionOrder(ElympicsLobbyExecutionOrders.Web3Wallet)]
     public class Web3Wallet : ElympicsEthSigner, IWallet
     {
         [PublicAPI]
         public event Action<WalletConnectionStatus>? WalletConnectionUpdated;
+
         internal event Action<WalletConnectionStatus>? WalletConnectionUpdatedInternal;
-        [SerializeField] private SmartContractServiceConfig config;
-        [SerializeField] private StandaloneBrowserJsConfig _browserJsConfig;
         public override string Address => _address;
 
         private string? _address;
-        private ISmartContractServiceWrapper _scs;
+        private ISmartContractServiceWrapper? _scs;
+
+        [PublicAPI]
+        public ChainConfig? CurrentChain => ThrowIfScsNull(_scs!.CurrentChain);
 
         private static IExternalWalletCommunicator WalletCommunicator => ElympicsExternalCommunicator.Instance!.WalletCommunicator!;
-        private void Awake()
+        private static IExternalTrustSmartContractOperations TrustCommunicator => ElympicsExternalCommunicator.Instance!.TrustCommunicator!;
+        private static IExternalERC20SmartContractOperations Erc20Communicator => ElympicsExternalCommunicator.Instance!.TokenCommunicator!;
+
+        private SmartContract TokenContract => CurrentChain!.Value.GetSmartContract(SmartContractType.ERC20Token);
+
+        private void Start()
         {
             _scs = GetComponent<ISmartContractServiceWrapper>();
+            if (_scs != null)
+                _scs.RegisterWallet(this);
+            Subscribe();
         }
-
-        private void Start() => Subscribe();
 
         public async UniTask<string> ConnectWeb3()
         {
-            var result = await WalletCommunicator.Connect(ChainId);
+            var result = await WalletCommunicator.Connect();
             _address = result.address;
+            _chainId = BigInteger.Parse(result.chainId);
             return _address;
         }
 
@@ -53,7 +61,7 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         {
             try
             {
-                return await WalletCommunicator.SendTransaction(Address, value.To, value.From, value.Data);
+                return await WalletCommunicator.SendTransaction(value.To, value.From, value.Data);
             }
             catch (Exception e)
             {
@@ -62,8 +70,9 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
             }
         }
 
-        public override BigInteger ChainId => BigInteger.Parse(_scs.CurrentChain!.Value.chainId);
+        public override BigInteger ChainId => _chainId;
 
+        private BigInteger _chainId;
         public override async UniTask<string> SignAsync(string message, CancellationToken ct = default)
         {
             Debug.Log($"[Wallet] Data to sign: {message} using address {Address}");
@@ -73,53 +82,46 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         public async UniTask<int> GetDecimals()
         {
             Debug.Log("[Wallet] Getting decimals for token...");
-            await WaitForConfig();
-            return _scs.CurrentChain!.Value.decimals;
+            return ThrowIfScsNull(_scs!.CurrentChain!.Value.Decimals);
         }
 
         public async UniTask<BigInteger> GetBalance()
         {
-            await WaitForConfig();
-            return BigInteger.Parse(await WalletCommunicator.GetBalance(Address));
+            return BigInteger.Parse(await Erc20Communicator.GetBalance(TokenContract, Address));
         }
 
-        //TODO: implement this later
         public async UniTask<string> GetName()
         {
-            await WaitForConfig();
-            return await UniTask.FromResult("TestName");
-            //return await _browserJs.GetName();
+            return await Erc20Communicator.GetName(TokenContract);
         }
 
-
-        //TODO: implement this later
         public async UniTask<string> GetSymbol()
         {
-            await WaitForConfig();
-            return await UniTask.FromResult("TestSymbol");
-            //return await _browserJs.GetSymbol();
+            return await Erc20Communicator.GetSymbol(TokenContract);
         }
 
         public async UniTask ApproveMax(string spender)
         {
             Debug.Log($"[Wallet] Approving token spend for {spender}...");
-            await WaitForConfig();
-            await WalletCommunicator.ApproveMax(Address, spender, IntType.MAX_UINT256_VALUE);
+            await Erc20Communicator.ApproveMax(TokenContract, Address, spender);
         }
 
-        public async UniTask Deposit(BigInteger amount)
+        public void Deposit()
         {
-            Debug.Log($"[Wallet] Depositing to Trust... [{amount}]");
-            await WaitForConfig();
-            var tokenAddress = _scs.CurrentChain!.Value.GetSmartContract(SmartContractType.ERC20Token).Address;
-            await WalletCommunicator.Deposit(Address, tokenAddress, amount);
+            Debug.Log($"[Wallet] Depositing to Trust...");
+            TrustCommunicator.ShowTrustPanel();
+        }
+
+        public async UniTask<TrustState> GetDeposit()
+        {
+            Debug.Log("[Wallet] Get Trust amount");
+            return await TrustCommunicator.GetTrustState();
         }
 
         public async UniTask<BigInteger> GetAllowance(string spender)
         {
             Debug.Log("[Wallet] Getting token allowance...");
-            await WaitForConfig();
-            return BigInteger.Parse(await WalletCommunicator.GetAllowance(Address, spender));
+            return BigInteger.Parse(await Erc20Communicator.GetAllowance(TokenContract, Address, spender));
         }
         public void ExternalShowChainSelection()
         {
@@ -134,18 +136,13 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
             WalletCommunicator.ExternalShowAccountInfo();
         }
 
-
-        private async UniTask WaitForConfig()
-        {
-            await UniTask.WaitUntil(() => _scs.CurrentChain != null);
-        }
-
         private void OnWalletConnected(string address, string chainId)
         {
             if (_address == address)
                 return;
 
             _address = address;
+            _chainId = BigInteger.Parse(chainId);
             WalletConnectionUpdatedInternal?.Invoke(WalletConnectionStatus.Connected);
             WalletConnectionUpdated?.Invoke(WalletConnectionStatus.Connected);
 
@@ -153,6 +150,7 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         private void OnWalletDisconnected()
         {
             _address = null;
+            _chainId = BigInteger.Zero;
             WalletConnectionUpdatedInternal?.Invoke(WalletConnectionStatus.Disconnected);
             WalletConnectionUpdated?.Invoke(WalletConnectionStatus.Disconnected);
         }
@@ -170,9 +168,15 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         }
         private void UnSubscribe()
         {
-
             ElympicsExternalCommunicator.Instance.WalletConnected -= OnWalletConnected;
             ElympicsExternalCommunicator.Instance.WalletDisconnected -= OnWalletDisconnected;
+        }
+
+        private T ThrowIfScsNull<T>(T val, [CallerMemberName] string methodName = "")
+        {
+            if (_scs == null)
+                throw new NullReferenceException($"Using {methodName} requires {nameof(DefaultSmartContractServiceWrapper)} and {nameof(SmartContractService)} attached to {gameObject.name}.");
+            return val;
         }
     }
 }

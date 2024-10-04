@@ -1,12 +1,12 @@
 #nullable enable
 using System;
 using System.Numerics;
-using ElympicsLobbyPackage.Blockchain.Wallet;
 using Elympics;
 using Elympics.Models.Authentication;
+using ElympicsLobbyPackage.Blockchain.Wallet;
 using UnityEngine;
 
-namespace ElympicsLobbyPackage.Blockchain.Communication
+namespace ElympicsLobbyPackage.Blockchain
 {
     public class BalanceInfo : MonoBehaviour
     {

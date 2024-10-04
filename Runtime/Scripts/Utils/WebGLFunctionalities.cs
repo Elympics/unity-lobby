@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage
 {
-    internal class WebGLFunctionalities
+    internal class WebGLFunctionalities: IDisposable
     {
         private readonly JsCommunicator _jsCommunicator;
 
@@ -35,6 +35,10 @@ namespace ElympicsLobbyPackage
 #if UNITY_WEBGL_API
             WebGLInput.captureAllKeyboardInput = !inputControlRequest.isKeyboardControlRequested;
 #endif
+        }
+        public void Dispose()
+        {
+            _jsCommunicator.WebObjectReceived -= OnWebMessageReceived;
         }
     }
 }

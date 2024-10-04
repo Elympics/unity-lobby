@@ -37,11 +37,11 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
                 Destroy(gameObject);
         }
 
-        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput payload)
+        public async UniTask<TReturn> SendRequestMessage<TInput, TReturn>(string messageType, TInput payload, string address = "")
         {
             var ticket = _requestCounter;
             ++_requestCounter;
-            var message = _messageFactory.GenerateRequestMessageJson(ticket, messageType, string.Empty, payload);
+            var message = _messageFactory.GenerateRequestMessageJson(ticket, messageType, address, payload);
             Debug.Log($"[{nameof(JsCommunicator)}] Send {messageType} message: {message}");
             DispatchHandleMessage(message);
             return await _dispatcher.RequestUniTaskOrThrow<TReturn>(ticket);

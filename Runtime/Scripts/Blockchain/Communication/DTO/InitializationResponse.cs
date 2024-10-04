@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
 {
 	[Serializable]
-	public class InitializationResponse
+	internal class InitializationResponse
 	{
 		public AuthDataRaw authData;
 		public string? error;
@@ -17,7 +17,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
     }
 
 	[Serializable]
-	public struct AuthDataRaw
+	internal struct AuthDataRaw
 	{
 		public string jwt;
 		public string userId;

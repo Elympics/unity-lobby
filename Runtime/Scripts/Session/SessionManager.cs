@@ -14,6 +14,7 @@ using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
 using Nethereum.Web3;
 using Newtonsoft.Json;
+using SCS;
 using UnityEngine;
 
 namespace ElympicsLobbyPackage.Session
@@ -48,6 +49,9 @@ namespace ElympicsLobbyPackage.Session
         {
             if (instance == null)
             {
+                if (SmartContractService.Instance != null)
+                    await SmartContractService.Instance.Initialize();
+
                 try
                 {
                     await TryCheckExternalAuthentication();
@@ -63,6 +67,7 @@ namespace ElympicsLobbyPackage.Session
             }
             else
                 Destroy(gameObject);
+
 
             if (_lobbyWrapper is { IsAuthenticated: true, WebSocketSession: { IsConnected: true } })
                 return;
@@ -94,7 +99,7 @@ namespace ElympicsLobbyPackage.Session
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                Debug.LogWarning(e);
                 return string.Empty;
             }
         }
@@ -213,7 +218,7 @@ namespace ElympicsLobbyPackage.Session
                 var closestRegion = await FindClosestRegion();
                 if (string.IsNullOrEmpty(closestRegion))
                 {
-                    Debug.LogWarning("Custom region search failed to find closest region. Using fallback region.");
+                    Debug.LogWarning($"Custom region search failed to find closest region. Using fallback region \"{fallbackRegion}\".");
                     _region = fallbackRegion;
                 }
                 else
@@ -222,7 +227,7 @@ namespace ElympicsLobbyPackage.Session
             else
                 _region = externalClosestRegion;
 
-            Debug.Log($"Closest region is {_region}");
+            Debug.Log($"Closest region is \"{_region}\"");
         }
 
         private async UniTask WalletAuthentication() //

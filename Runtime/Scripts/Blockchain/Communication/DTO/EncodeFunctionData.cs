@@ -1,4 +1,5 @@
 using System;
+using SCS;
 
 namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
 {
@@ -9,5 +10,15 @@ namespace ElympicsLobbyPackage.Blockchain.Communication.DTO
         public string ABI;
         public string function;
         public string[] parameters;
+
+        public static EncodeFunctionData Create(SmartContract tokenInfo, string functionCall, params string[] parameters) => new()
+        {
+            contractAddress = tokenInfo.Address,
+            ABI = tokenInfo.ABI,
+            function = functionCall,
+            parameters = parameters,
+        };
     }
+
+
 }
