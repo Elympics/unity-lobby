@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
 {
-    [CreateAssetMenu(fileName = "StandaloneBrowserJsConfig", menuName = "Speculos/BrowserJsConfig")]
+    [CreateAssetMenu(fileName = "StandaloneBrowserJsConfig", menuName = "Configs/WalletConfig")]
     public class StandaloneBrowserJsConfig : ScriptableObject
     {
         private const string EthPrivateKeyPlayerPrefsKeyBase = "Elympics/EthPrivateKey";
@@ -17,37 +17,36 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
                 : EthPrivateKeyPlayerPrefsKeyBase;
 
         [Header("Wallet")]
-        [SerializeField] private bool _isWalletAvailable;
+        [SerializeField] private bool isWalletAvailable;
+
+        [SerializeField] private string chainId;
 
         [Header("Connection")]
-        [SerializeField] private bool _acceptsEagerConnection;
-        [SerializeField] private bool _acceptsConnection;
+        [SerializeField] private bool acceptsConnection;
 
         [Header("Signature")]
-        [SerializeField] private bool _shouldConfirmSignatures;
+        [SerializeField] private bool shouldConfirmSignatures;
 
         [Header("Blockchain")]
-        [SerializeField] private bool _shouldSignTransactions;
-        [SerializeField] private bool _shouldSendTransactions;
-        [SerializeField] private bool _shouldGetValues;
+        [SerializeField] private bool shouldSignTransactions;
+        [SerializeField] private bool shouldSendTransactions;
+        [SerializeField] private bool shouldGetValues;
 
         [Header("Delay")]
-        [SerializeField] private int _walletAvailableDelay;
-        [SerializeField] private int _connectionDelay;
-        [SerializeField] private int _signatureDelay;
+        [SerializeField] private int connectionDelay;
+        [SerializeField] private int signatureDelay;
 
         private EthECKey _walletKey;
 
-        public bool IsWalletAvailable => _isWalletAvailable;
-        public bool AcceptsEagerConnection => _acceptsEagerConnection;
-        public bool AcceptsConnection => _acceptsConnection;
-        public bool ShouldConfirmSignatures => _shouldConfirmSignatures;
-        public bool ShouldSignTransactions => _shouldSignTransactions;
-        public bool ShouldSendTransactions => _shouldSendTransactions;
-        public bool ShouldGetValues => _shouldGetValues;
-        public int WalletAvailableDelay => _walletAvailableDelay;
-        public int ConnectionDelay => _connectionDelay;
-        public int SignatureDelay => _signatureDelay;
+        public bool IsWalletAvailable => isWalletAvailable;
+        public string ChainId => chainId;
+        public bool AcceptsConnection => acceptsConnection;
+        public bool ShouldConfirmSignatures => shouldConfirmSignatures;
+        public bool ShouldSignTransactions => shouldSignTransactions;
+        public bool ShouldSendTransactions => shouldSendTransactions;
+        public bool ShouldGetValues => shouldGetValues;
+        public int ConnectionDelay => connectionDelay;
+        public int SignatureDelay => signatureDelay;
 
         public EthECKey? GetWalletKey()
         {

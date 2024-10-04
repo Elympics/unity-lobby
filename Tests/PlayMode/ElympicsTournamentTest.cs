@@ -4,12 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
+using Elympics.Tests;
+using ElympicsLobbyPackage.Tournament;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Elympics.Tests
+namespace ElympicsLobby.Tests.PlayMode
 {
     [Category("ElympicsTournament")]
     [SuppressMessage("ReSharper", "HeapView.BoxingAllocation")]

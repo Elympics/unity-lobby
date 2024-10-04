@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ElympicsLobby.Tests.PlayMode
 {
-    public class TestElympicsLobbyWrapperClient : MonoBehaviour, IElympicsLobbyWrapper
+    internal class TestElympicsLobbyWrapperClient : MonoBehaviour, IElympicsLobbyWrapper
     {
         public AuthData AuthData { get; private set; }
 

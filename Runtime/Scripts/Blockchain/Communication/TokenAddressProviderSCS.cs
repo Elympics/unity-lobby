@@ -25,7 +25,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         {
             if (!scs.CurrentChain.HasValue)
                 throw new Exception("Cannot access current chain data");
-            return int.Parse(scs.CurrentChain.Value.chainId);
+            return int.Parse(scs.CurrentChain.Value.ChainId);
         }
     }
 }

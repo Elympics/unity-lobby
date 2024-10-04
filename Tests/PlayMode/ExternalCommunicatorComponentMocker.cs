@@ -17,14 +17,14 @@ namespace ElympicsLobby.Tests.PlayMode
         public static void MockIExternalAuthenticatorAndSet(this ElympicsExternalCommunicator communicator, AuthData authData, Capabilities mockCapabilities, string environment, string closestRegion)
         {
             var authMock = Substitute.For<IExternalAuthenticator>();
-            _ = authMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(UniTask.FromResult(new ExternalAuthData(authData, true, mockCapabilities, environment, closestRegion)));
+            _ = authMock.InitializationMessage(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(UniTask.FromResult(new ExternalAuthData(authData, true, mockCapabilities, environment, closestRegion, null)));
             communicator.SetCustomExternalAuthenticator(authMock);
         }
 
         public static void MockExternalWalletCommunicatorAndSet(this ElympicsExternalCommunicator communicator, string address, string chainId)
         {
             var walletMock = Substitute.For<IExternalWalletCommunicator>();
-            walletMock.Connect(Arg.Any<BigInteger>()).Returns(UniTask.FromResult(new ConnectionResponse()
+            walletMock.Connect().Returns(UniTask.FromResult(new ConnectionResponse()
             {
                 address = address,
                 chainId = chainId,
@@ -35,13 +35,13 @@ namespace ElympicsLobby.Tests.PlayMode
         public static void MockExternalWalletCommunicatorWithDisconnectionAndSet(this ElympicsExternalCommunicator communicator, string address, string chainId)
         {
             var walletMock = Substitute.For<IExternalWalletCommunicator>();
-            IWalletConnectionListener listener = null;
-            walletMock.When(x => x.SetWalletConnectionListener(Arg.Any<IWalletConnectionListener>())).Do(x =>
+            IPlayPadEventListener listener = null;
+            walletMock.When(x => x.SetPlayPadEventListener(Arg.Any<IPlayPadEventListener>())).Do(x =>
             {
-                listener = x.Arg<IWalletConnectionListener>();
+                listener = x.Arg<IPlayPadEventListener>();
             });
 
-            walletMock.Connect(Arg.Any<BigInteger>()).ReturnsForAnyArgs(x => UniTask.FromResult(new ConnectionResponse()
+            walletMock.Connect().ReturnsForAnyArgs(x => UniTask.FromResult(new ConnectionResponse()
             {
                 address = address,
                 chainId = chainId,
@@ -52,16 +52,16 @@ namespace ElympicsLobby.Tests.PlayMode
         public static void MockExternalWalletCommunicatorWithConnectedAndSet(this ElympicsExternalCommunicator communicator, string address, string chainId)
         {
             var walletMock = Substitute.For<IExternalWalletCommunicator>();
-            IWalletConnectionListener listener = null;
-            walletMock.When(x => x.SetWalletConnectionListener(Arg.Any<IWalletConnectionListener>())).Do(x =>
+            IPlayPadEventListener listener = null;
+            walletMock.When(x => x.SetPlayPadEventListener(Arg.Any<IPlayPadEventListener>())).Do(x =>
             {
-                listener = x.Arg<IWalletConnectionListener>();
+                listener = x.Arg<IPlayPadEventListener>();
             });
 
-            walletMock.Connect(Arg.Any<BigInteger>()).ReturnsForAnyArgs(x => UniTask.FromResult(new ConnectionResponse()
+            walletMock.Connect().ReturnsForAnyArgs(x => UniTask.FromResult(new ConnectionResponse()
             {
-                address = string.Empty,
-                chainId = string.Empty,
+                address = address,
+                chainId = chainId,
             })).AndDoes(x => listener.OnWalletConnected(address, chainId));
             communicator.SetCustomExternalWalletCommunicator(walletMock);
         }
