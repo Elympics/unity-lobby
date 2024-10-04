@@ -12,13 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83da0b88a91bd4fd8aa7e37ce0711cde, type: 3}
   m_Name: StandaloneBrowserJsConfig
   m_EditorClassIdentifier: 
-  _isWalletAvailable: 1
-  _acceptsEagerConnection: 0
-  _acceptsConnection: 1
-  _shouldConfirmSignatures: 1
-  _shouldSignTransactions: 1
-  _shouldSendTransactions: 1
-  _shouldGetValues: 1
-  _walletAvailableDelay: 100
-  _connectionDelay: 200
-  _signatureDelay: 200
+  isWalletAvailable: 1
+  chainId: 11155111
+  acceptsConnection: 1
+  shouldConfirmSignatures: 1
+  shouldSignTransactions: 1
+  shouldSendTransactions: 1
+  shouldGetValues: 1
+  connectionDelay: 100
+  signatureDelay: 100
