@@ -19,6 +19,7 @@ using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.Blockchain.Utils;
 using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
+using Nethereum.JsonRpc.Client;
 
 namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
 {
@@ -38,7 +39,9 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         {
             { 1, "https://ethereum.publicnode.com" },
             { 5, "https://ethereum-goerli.publicnode.com" },
-            { 11155111, "https://ethereum-sepolia.publicnode.com" },
+            { 11155111, "https://ethereum-sepolia-rpc.publicnode.com" },
+            { 8453, "https://base-rpc.publicnode.com" },
+            { 84532, "https://base-sepolia-rpc.publicnode.com"}
         };
 
         public StandaloneCommunicator(StandaloneBrowserJsConfig standaloneBrowserJsConfig)
@@ -132,10 +135,12 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
             }
             var nethereumContract = GetOrCreateContract(contract);
             var decimalsFunction = nethereumContract.GetFunction(name);
+
+            var par = parameters.Select(x => (object)x).ToArray();
+
             T result;
-            if (parameters != null
-                && parameters.Count() > 0)
-                result = await decimalsFunction.CallAsync<T>(parameters);
+            if (parameters.Any())
+                result = await decimalsFunction.CallAsync<T>(par);
             else
                 result = await decimalsFunction.CallAsync<T>();
             return result.ToString();
