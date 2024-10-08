@@ -14,45 +14,18 @@ namespace ElympicsLobbyPackage.Blockchain
             _externalContractOperations = externalContractOperations;
             _externalWalletOperator = externalWalletOperator;
         }
-        public async UniTask<string> GetDecimals(SmartContract tokenContract)
-        {
-            if (tokenContract.Type is not SmartContractType.ERC20Token)
-                throw new ERC20SmartContractException("Token contract is not of ERC20Token type.");
-            return await _externalContractOperations.GetValue<int>(tokenContract, ValueCalls.Decimals);
-        }
+        public async UniTask<string> GetDecimals(SmartContract tokenContract) => await _externalContractOperations.GetValue<int>(tokenContract, ValueCalls.Decimals);
 
-        public async UniTask<string> GetBalance(SmartContract tokenContract, string owner)
-        {
-            if (tokenContract.Type is not SmartContractType.ERC20Token)
-                throw new ERC20SmartContractException("Token contract is not of ERC20Token type.");
-            return await _externalContractOperations.GetValue<BigInteger>(tokenContract, ValueCalls.BalanceOf, owner);
-        }
+        public async UniTask<string> GetBalance(SmartContract tokenContract, string owner) => await _externalContractOperations.GetValue<BigInteger>(tokenContract, ValueCalls.BalanceOf, owner);
 
-        public async UniTask<string> GetSymbol(SmartContract tokenContract)
-        {
-            if (tokenContract.Type is not SmartContractType.ERC20Token)
-                throw new ERC20SmartContractException("Token contract is not of ERC20Token type.");
-            return await _externalContractOperations.GetValue<string>(tokenContract, ValueCalls.Symbol);
-        }
+        public async UniTask<string> GetSymbol(SmartContract tokenContract) => await _externalContractOperations.GetValue<string>(tokenContract, ValueCalls.Symbol);
 
-        public async UniTask<string> GetName(SmartContract tokenContract)
-        {
-            if (tokenContract.Type is not SmartContractType.ERC20Token)
-                throw new ERC20SmartContractException("Token contract is not of ERC20Token type.");
-            return await _externalContractOperations.GetValue<string>(tokenContract, ValueCalls.Name);
-        }
+        public async UniTask<string> GetName(SmartContract tokenContract) => await _externalContractOperations.GetValue<string>(tokenContract, ValueCalls.Name);
 
-        public async UniTask<string> GetAllowance(SmartContract tokenContract, string owner, string spender)
-        {
-            if (tokenContract.Type is not SmartContractType.ERC20Token)
-                throw new ERC20SmartContractException("Token contract is not of ERC20Token type.");
-            return await _externalContractOperations.GetValue<BigInteger>(tokenContract, ValueCalls.Allowance, owner, spender);
-        }
+        public async UniTask<string> GetAllowance(SmartContract tokenContract, string owner, string spender) => await _externalContractOperations.GetValue<BigInteger>(tokenContract, ValueCalls.Allowance, owner, spender);
 
         async UniTask<string> IExternalERC20SmartContractOperations.Approve(SmartContract tokenContract, string owner, string spender, BigInteger value)
         {
-            if (tokenContract.Type is not SmartContractType.ERC20Token)
-                throw new ERC20SmartContractException("Token contract is not of ERC20Token type.");
             var parameters = new[]
             {
                 spender,

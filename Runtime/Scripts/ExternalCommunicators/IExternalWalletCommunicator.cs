@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Numerics;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Plugins.ElympicsLobby.Runtime.Scripts.ExternalCommunicators;
@@ -14,6 +13,9 @@ namespace ElympicsLobbyPackage.ExternalCommunication
         public void ExternalShowChainSelection();
         public void ExternalShowConnectToWallet();
         public void ExternalShowAccountInfo();
-        internal void SetPlayPadEventListener(IPlayPadEventListener listener);
+        internal void SetPlayPadEventListener(IPlayPadEventListener listener)
+        {
+
+        }
     }
 }
