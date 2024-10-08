@@ -100,11 +100,7 @@ namespace ElympicsLobbyPackage
         [PublicAPI]
         public void SetCustomExternalAuthenticator(IExternalAuthenticator customExternalAuthenticator) => ExternalAuthenticator = customExternalAuthenticator ?? throw new ArgumentNullException(nameof(customExternalAuthenticator));
         [PublicAPI]
-        public void SetCustomExternalWalletCommunicator(IExternalWalletCommunicator customExternalWalletCommunicator)
-        {
-            WalletCommunicator = customExternalWalletCommunicator ?? throw new ArgumentNullException(nameof(customExternalWalletCommunicator));
-            WalletCommunicator.SetPlayPadEventListener(this);
-        }
+        public void SetCustomExternalWalletCommunicator(IExternalWalletCommunicator customExternalWalletCommunicator) => WalletCommunicator = customExternalWalletCommunicator ?? throw new ArgumentNullException(nameof(customExternalWalletCommunicator));
         [PublicAPI]
         public void SetCustomExternalGameStatusCommunicator(IExternalGameStatusCommunicator customExternalGameStatusCommunicator) => GameStatusCommunicator = customExternalGameStatusCommunicator ?? throw new ArgumentNullException(nameof(customExternalGameStatusCommunicator));
 
