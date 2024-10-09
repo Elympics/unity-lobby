@@ -33,7 +33,7 @@ namespace ElympicsLobbyPackage.Blockchain.Wallet
         private static IExternalTrustSmartContractOperations TrustCommunicator => ElympicsExternalCommunicator.Instance!.TrustCommunicator!;
         private static IExternalERC20SmartContractOperations Erc20Communicator => ElympicsExternalCommunicator.Instance!.TokenCommunicator!;
 
-        private SmartContract TokenContract => CurrentChain!.Value.GetSmartContract(SmartContractType.ERC20Token);
+        private SmartContract TokenContract => CurrentChain!.Value.GetSmartContract(SmartContractType.ERC20Token).ToSmartContract(CurrentChain.Value.ChainId);
 
         private void Start()
         {
