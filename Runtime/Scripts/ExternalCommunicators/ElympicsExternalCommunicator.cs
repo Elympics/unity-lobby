@@ -143,6 +143,7 @@ namespace ElympicsLobbyPackage
         {
             WalletCommunicator?.Dispose();
             _webGLFunctionalities?.Dispose();
+            GameStatusCommunicator?.Dispose();
         }
         public void OnWalletConnected(string address, string chainId) => WalletConnected?.Invoke(address, chainId);
         public void OnWalletDisconnected() => WalletDisconnected?.Invoke();

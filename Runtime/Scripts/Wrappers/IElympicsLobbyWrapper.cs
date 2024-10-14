@@ -6,6 +6,9 @@ namespace ElympicsLobbyPackage
 {
     internal interface IElympicsLobbyWrapper
     {
+        IGameplaySceneMonitor GameplaySceneMonitor { get; }
+
+        IRoomsManager RoomsManager { get; }
 
         AuthData AuthData { get; }
 

@@ -1,7 +1,7 @@
 using System;
 namespace ElympicsLobbyPackage.ExternalCommunication
 {
-	public interface IExternalGameStatusCommunicator
+	public interface IExternalGameStatusCommunicator: IDisposable
 	{
 		public void GameFinished(int score);
 
