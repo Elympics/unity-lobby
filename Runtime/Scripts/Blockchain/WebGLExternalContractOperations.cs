@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Blockchain.Communication;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
-using SCS;
-using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain
 {
@@ -18,6 +16,7 @@ namespace ElympicsLobbyPackage.Blockchain
         {
             var message = new EncodeFunctionData()
             {
+                chainId = tokenInfo.ChainId,
                 contractAddress = tokenInfo.Address,
                 ABI = tokenInfo.ABI,
                 function = valueName,
