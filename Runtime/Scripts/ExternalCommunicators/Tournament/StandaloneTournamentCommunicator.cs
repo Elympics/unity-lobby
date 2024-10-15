@@ -1,5 +1,6 @@
 using System;
 using ElympicsLobbyPackage.Blockchain.Communication;
+using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using ElympicsLobbyPackage.ExternalCommunication;
 using ElympicsLobbyPackage.ExternalCommunication.Tournament;
@@ -21,6 +22,11 @@ namespace ElympicsLobbyPackage
             jsCommunicator.RegisterIWebEventReceiver(this, Blockchain.Communication.WebMessages.TournamentUpdated);
         }
         public event Action<TournamentInfo> TournamentUpdated;
+        public UniTask<CanPlayTournamentResponse> CanPlayTournament() => UniTask.FromResult(new CanPlayTournamentResponse()
+        {
+            statusCode = _config.CanPlayStatusCode,
+            message = _config.CanPlayMessage
+        });
         public void OnWebMessage(WebMessageObject message)
         {
             if (string.Equals(message.type, Blockchain.Communication.WebMessages.TournamentUpdated) is false)

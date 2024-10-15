@@ -6,7 +6,5 @@ using UnityEngine;
 public enum TournamentPlayState
 {
     Playable = 0,
-    LackOfEntries = 1,
-    NotStarted = 2,
-    Finished = 3,
+    NonPlayable = 1,
 }

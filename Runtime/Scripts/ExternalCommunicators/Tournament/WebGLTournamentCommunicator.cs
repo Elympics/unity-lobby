@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using Cysharp.Threading.Tasks;
 using ElympicsLobbyPackage.Blockchain.Communication;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using ElympicsLobbyPackage.Tournament;
@@ -11,6 +12,7 @@ namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
     internal class WebGLTournamentCommunicator : IExternalTournamentCommunicator, IWebMessageReceiver
     {
         public event Action<TournamentInfo>? TournamentUpdated;
+        public async UniTask<CanPlayTournamentResponse> CanPlayTournament() => await _jsCommunicator.SendRequestMessage<string, CanPlayTournamentResponse>(ReturnEventTypes.CanPlayTournament, string.Empty);
 
         private readonly JsCommunicator _jsCommunicator;
         public WebGLTournamentCommunicator(JsCommunicator jsCommunicator)

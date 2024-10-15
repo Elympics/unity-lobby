@@ -12,6 +12,7 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         public const string GetLeaderboard = "GetLeaderboard";
         public const string GetLeaderboardUserCentered = "GetLeaderboardUserCentered";
         public const string GetLeaderboardUserHighScore = "GetLeaderboardUserHighScore";
+        public const string CanPlayTournament = "CanPlayTournament";
     }
 
     public static class WebMessages
