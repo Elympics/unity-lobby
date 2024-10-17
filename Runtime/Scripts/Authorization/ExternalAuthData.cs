@@ -6,7 +6,7 @@ namespace ElympicsLobbyPackage.Authorization
 {
     public struct ExternalAuthData
     {
-        public readonly AuthData? AuthData;
+        public readonly AuthData AuthData;
         public readonly bool IsMobile;
         public readonly Capabilities Capabilities;
         public readonly string Environment;
@@ -14,7 +14,7 @@ namespace ElympicsLobbyPackage.Authorization
         public TournamentInfo? TournamentInfo;
 
         public ExternalAuthData(
-            AuthData? authData,
+            AuthData authData,
             bool isMobile,
             Capabilities capabilities,
             string environment,
