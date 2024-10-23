@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ElympicsLobbyPackage.Blockchain.Communication.DTO;
 using ElympicsLobbyPackage.Tournament;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
 {
@@ -26,6 +27,10 @@ namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
         public TonDetailsDto TonDetails => tonDetails;
         public EvmDetailsDto EvmDetails => evmDetails;
         public int LeaderboardCapacity => leaderboardCapacity;
+        public int CanPlayStatusCode => canPlayStatusCode;
+        public string CanPlayMessage => canPlayMessage;
+
+
 
         [Header("Tournament")]
         [SerializeField] private bool isTournamentAvailable;
@@ -44,5 +49,8 @@ namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
         [SerializeField] private TonDetailsDto tonDetails;
         [SerializeField] private bool evmDetailsAvailable;
         [SerializeField] private EvmDetailsDto evmDetails;
+        [Header("Can play response")]
+        [SerializeField] private int canPlayStatusCode;
+        [SerializeField] private string canPlayMessage;
     }
 }

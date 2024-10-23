@@ -70,7 +70,6 @@ namespace ElympicsLobbyPackage
         {
             if (Instance == null)
             {
-
                 _jsCommunicator = GetComponent<JsCommunicator>();
                 if (_jsCommunicator == null)
                     throw new ArgumentNullException(nameof(_jsCommunicator), $"Couldn't find {nameof(JsCommunicator)} component on gameObject {gameObject.name}");

@@ -39,7 +39,7 @@ namespace ElympicsLobby.Tests.PlayMode
             var end = DateTimeOffset.Now.AddMinutes(3);
             var tournamentInfo = CreateTournament(created, start, end);
             await _sut!.Initialize(tournamentInfo);
-            AssertPlayState(TournamentPlayState.NotStarted);
+            AssertPlayState(TournamentPlayState.NonPlayable);
         });
 
         [UnityTest]
@@ -50,7 +50,7 @@ namespace ElympicsLobby.Tests.PlayMode
             var end = DateTimeOffset.Now.AddSeconds(3);
             var tournamentInfo = CreateTournament(created, start, end);
             await _sut!.Initialize(tournamentInfo);
-            Assert.AreEqual((int)TournamentPlayState.NotStarted, (int)_sut.PlayState);
+            Assert.AreEqual((int)TournamentPlayState.NonPlayable, (int)_sut.PlayState);
             var startEventCalled = false;
             _sut.TournamentStarted += () => startEventCalled = true;
             await UniTask.WaitUntil(() => DateTimeOffset.Now > start);

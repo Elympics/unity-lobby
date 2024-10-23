@@ -9,7 +9,6 @@ namespace ElympicsLobbyPackage.ExternalCommunication.Tournament
     {
         event Action TournamentFinished;
         event Action TournamentStarted;
-        int? EntriesLeft { get; }
         TournamentPlayState PlayState { get; }
         bool IsTournamentAvailable { get; }
         TournamentInfo TournamentInfo { get; }
