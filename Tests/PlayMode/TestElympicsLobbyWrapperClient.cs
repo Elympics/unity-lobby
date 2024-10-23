@@ -9,7 +9,11 @@ namespace ElympicsLobby.Tests.PlayMode
 {
     internal class TestElympicsLobbyWrapperClient : MonoBehaviour, IElympicsLobbyWrapper
     {
+        public IGameplaySceneMonitor GameplaySceneMonitor { get; } = new MockGameplaySceneMonitor();
+        public IRoomsManager RoomsManager { get; }
+
         public AuthData AuthData { get; private set; }
+
 
         public bool IsAuthenticated => AuthData != null;
 
@@ -27,6 +31,7 @@ namespace ElympicsLobby.Tests.PlayMode
         }
 
         private MockWebSocket _mockWebSocket;
+
         public void SignOut()
         {
             AuthData = null;
@@ -58,5 +63,15 @@ namespace ElympicsLobby.Tests.PlayMode
         public bool IsConnected { get; private set; }
 
         public void ToggleConnection(bool connected) => IsConnected = connected;
+    }
+
+    public class MockGameplaySceneMonitor : IGameplaySceneMonitor
+    {
+        public void Dispose()
+        {
+        }
+        public bool IsCurrentlyInMatch { get; }
+        public event Action GameplayStarted;
+        public event Action GameplayFinished;
     }
 }

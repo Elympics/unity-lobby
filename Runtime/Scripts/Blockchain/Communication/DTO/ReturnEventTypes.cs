@@ -28,6 +28,8 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
         public const string ShowConnectToWallet = "ShowConnectUI";
         public const string ShowChainSelectionUI = "ShowChainSelectionUI";
         public const string GameFinished = "GameFinished";
+        public const string GameplayStarted = "GameplayStarted";
+        public const string GameplayFinished = "GameplayFinished";
         public const string ShowAccountUI = "ShowAccountUI";
         public const string ApplicationInitialized = "ApplicationInitialized";
         public const string IncreaseTrust = "IncreaseTrust";

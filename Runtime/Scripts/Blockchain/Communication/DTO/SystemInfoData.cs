@@ -3,7 +3,7 @@ using System;
 namespace ElympicsLobbyPackage
 {
     [Serializable]
-    internal struct SystemInfoData
+    public struct SystemInfoData
     {
         public int systemMemorySize;
         public string operatingSystemFamily;
