@@ -17,8 +17,8 @@ namespace ElympicsLobbyPackage.Blockchain.Communication
 
     public static class WebMessages
     {
-        public const string WalletConnection = "WalletConnection";
         public const string WebGLKeyboardInputControl = "WebGLKeyboardInputControl";
+        public const string AuthDataChanged = "AuthDataChanged";
         public const string TrustTransactionFinished = "TrustTransactionFinished";
         public const string TournamentUpdated = "TournamentUpdated";
     }
