@@ -23,18 +23,18 @@ namespace ElympicsLobbyPackage.DataStorage
             );
         }
 
-        public void Set(AuthData authData)
-        {
-            _storage.Set(AUTH_DATA_KEY, new SerializableAuthData(authData));
-        }
-        public AuthData? Get()
-        {
-            return _storage.Get(AUTH_DATA_KEY).AuthData;
-        }
+        // public void Set(AuthData authData)
+        // {
+        //     _storage.Set(AUTH_DATA_KEY, new SerializableAuthData(authData));
+        // }
+        // public AuthData? Get()
+        // {
+        //     return _storage.Get(AUTH_DATA_KEY).AuthData;
+        // }
 
-        public void Clear()
-        {
-            _storage.Clear(AUTH_DATA_KEY);
-        }
+        // public void Clear()
+        // {
+        //     _storage.Clear(AUTH_DATA_KEY);
+        // }
     }
 }

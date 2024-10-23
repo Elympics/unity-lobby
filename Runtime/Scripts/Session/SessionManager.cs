@@ -9,6 +9,7 @@ using ElympicsLobbyPackage.Blockchain.Communication.Exceptions;
 using ElympicsLobbyPackage.Blockchain.Wallet;
 using ElympicsLobbyPackage.DataStorage;
 using ElympicsLobbyPackage.ExternalCommunication;
+using ElympicsLobbyPackage.ExternalCommunication.Tournament;
 using ElympicsLobbyPackage.JWT;
 using ElympicsLobbyPackage.Utils;
 using JetBrains.Annotations;
@@ -25,6 +26,9 @@ namespace ElympicsLobbyPackage.Session
         [PublicAPI]
         public SessionInfo? CurrentSession { get; private set; }
 
+        [PublicAPI]
+        public IElympicsTournament? ElympicsTournament;
+
         [SerializeField] private string fallbackRegion = ElympicsRegions.Warsaw;
 
         private static SessionManager? instance;
@@ -37,11 +41,15 @@ namespace ElympicsLobbyPackage.Session
 
         private void Start()
         {
+            ElympicsTournament = GetComponent<IElympicsTournament>();
             _lobbyWrapper = GetComponent<IElympicsLobbyWrapper>();
             _wallet = GetComponent<Web3Wallet>();
             _wallet.WalletConnectionUpdatedInternal += OnWalletConnectionUpdated;
         }
 
+        /// <summary>
+        /// Request PlayPad for authentication data and initialize ElympicsTournament when tournament is active.
+        /// </summary>
         [PublicAPI]
         public async UniTask AuthenticateFromExternalAndConnect()
         {
@@ -51,6 +59,9 @@ namespace ElympicsLobbyPackage.Session
                     await SmartContractService.Instance.Initialize();
 
                 await TryCheckExternalAuthentication();
+                if (ElympicsTournament != null
+                    && CurrentSession!.Value.TournamentInfo.HasValue)
+                    await ElympicsTournament.Initialize(CurrentSession.Value.TournamentInfo.Value);
                 instance = this;
             }
             else
@@ -137,8 +148,23 @@ namespace ElympicsLobbyPackage.Session
                 throw new NoNullAllowedException($"Please provide custom external authorizer via {nameof(ElympicsExternalCommunicator.SetCustomExternalAuthenticator)}");
 #endif
             var result = await ExternalAuthenticator.InitializationMessage(gameId, gameName, versionName, sdkVersion, lobbyPackageVersion);
-
             await SetClosestRegion(result.ClosestRegion);
+#if UNITY_EDITOR
+            var standaloneAuthType = result.AuthData.AuthType;
+            if (standaloneAuthType == AuthType.EthAddress)
+            {
+                await _wallet!.ConnectWeb3();
+            }
+            await _lobbyWrapper.ConnectToElympicsAsync(new ConnectionData()
+            {
+                AuthType = standaloneAuthType,
+                Region = new RegionData(_region)
+            });
+            var unityPayload = _lobbyWrapper.AuthData.JwtToken.ExtractUnityPayloadFromJwt();
+            var (accountWallet, signWallet) = GetAccountAndSignWalletAddressesFromPayload(unityPayload, standaloneAuthType);
+            CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, accountWallet, signWallet, result.Capabilities, result.Environment, result.IsMobile, _region, result.TournamentInfo);
+            return;
+#endif
             try
             {
                 await AuthWithCached(result.AuthData, false, result);
@@ -177,8 +203,17 @@ namespace ElympicsLobbyPackage.Session
                     || availableRegions.Count == 0)
                     return string.Empty;
 
-                var closestRegion = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
-                return closestRegion.Region;
+                var closestRegion = string.Empty;
+                try
+                {
+                    var result = await ElympicsCloudPing.ChooseClosestRegion(availableRegions);
+                    closestRegion = result.Region;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+                return closestRegion;
             }
             catch (Exception e)
             {
@@ -195,36 +230,37 @@ namespace ElympicsLobbyPackage.Session
                 {
                     _lobbyWrapper.SignOut();
                 }
-                var savedAuthData = _authDataStorage.Get();
-                if (savedAuthData == null
-                    || savedAuthData.AuthType == AuthType.ClientSecret)
-                {
-                    await AuthWithEth();
-                }
-                else
-                {
-                    var tokenAsString = JsonWebToken.Decode(savedAuthData.JwtToken, "", false);
-                    if (string.IsNullOrEmpty(tokenAsString))
-                    {
-                        Debug.Log("[SessionManager] found token was invalid. Forcing re-authentication.");
-                        await AuthWithEth();
-                        return;
-                    }
-                    var token = JsonConvert.DeserializeObject<ElympicsJwt>(tokenAsString);
-                    var isValid = IsTokenValid(token);
-                    var isMatching = IsTokenMatching(token, _wallet!.Address);
-                    if (!isValid
-                        || !isMatching)
-                    {
-                        Debug.Log("[SessionManager] found token was invalid. Forcing re-authentication.");
-                        await AuthWithEth();
-                        return;
-                    }
-
-                    Debug.Log("[SessionManager] found matching cached token. Reusing value confirmed!");
-                    await AuthWithCached(savedAuthData, true, null);
-                    SaveNewAuthData();
-                }
+                await AuthWithEth();
+                //var savedAuthData = _authDataStorage.Get();
+                // if (savedAuthData == null
+                //     || savedAuthData.AuthType == AuthType.ClientSecret)
+                // {
+                //     await AuthWithEth();
+                // }
+                // else
+                // {
+                //     var tokenAsString = JsonWebToken.Decode(savedAuthData.JwtToken, "", false);
+                //     if (string.IsNullOrEmpty(tokenAsString))
+                //     {
+                //         Debug.Log("[SessionManager] found token was invalid. Forcing re-authentication.");
+                //         await AuthWithEth();
+                //         return;
+                //     }
+                //     var token = JsonConvert.DeserializeObject<ElympicsJwt>(tokenAsString);
+                //     var isValid = IsTokenValid(token);
+                //     var isMatching = IsTokenMatching(token, _wallet!.Address);
+                //     if (!isValid
+                //         || !isMatching)
+                //     {
+                //         Debug.Log("[SessionManager] found token was invalid. Forcing re-authentication.");
+                //         await AuthWithEth();
+                //         return;
+                //     }
+                //
+                //     Debug.Log("[SessionManager] found matching cached token. Reusing value confirmed!");
+                //     await AuthWithCached(savedAuthData, true, null);
+                //     //SaveNewAuthData();
+                // }
             }
             catch (SessionManagerAuthException e)
             {
@@ -232,19 +268,19 @@ namespace ElympicsLobbyPackage.Session
             }
             await UniTask.CompletedTask;
         }
-        private void SaveNewAuthData()
-        {
-            var authData = _lobbyWrapper.AuthData;
-
-            if (authData is null)
-            {
-                _authDataStorage.Clear();
-            }
-            else
-            {
-                _authDataStorage.Set(authData);
-            }
-        }
+        // private void SaveNewAuthData()
+        // {
+        //     var authData = _lobbyWrapper.AuthData;
+        //
+        //     if (authData is null)
+        //     {
+        //         _authDataStorage.Clear();
+        //     }
+        //     else
+        //     {
+        //         _authDataStorage.Set(authData);
+        //     }
+        // }
 
         private void OnWalletConnectionUpdated(WalletConnectionStatus status)
         {
@@ -276,22 +312,11 @@ namespace ElympicsLobbyPackage.Session
                     AuthFromCacheData = new CachedAuthData(cachedData, autoRetry)
                 });
 
-                string? accountWallet = null;
-                string? signWallet = null;
+                // string? accountWallet = null;
+                // string? signWallet = null;
 
-                var payload = JsonWebToken.Decode(cachedData.JwtToken, string.Empty, false);
-                if (payload is null)
-                {
-                    throw new Exception("Couldn't decode payload form jwt token.");
-                }
-                var formattedPayload = AuthTypeRaw.ToUnityNaming(payload);
-                var payloadDeserialized = JsonUtility.FromJson<UnityPayload>(formattedPayload);
-
-                accountWallet = payloadDeserialized.ethAddress is not null ? payloadDeserialized.ethAddress : null;
-                if (cachedData.AuthType.IsWallet())
-                {
-                    signWallet = accountWallet;
-                }
+                var payloadDeserialized = cachedData.JwtToken.ExtractUnityPayloadFromJwt();
+                var (accountWallet, signWallet) = GetAccountAndSignWalletAddressesFromPayload(payloadDeserialized, cachedData.AuthType);
                 var capa = external?.Capabilities ?? CurrentSession!.Value.Capabilities;
                 var enviro = external?.Environment ?? CurrentSession!.Value.Environment;
                 var isMobile = external?.IsMobile ?? CurrentSession!.Value.IsMobile;
@@ -304,6 +329,15 @@ namespace ElympicsLobbyPackage.Session
             }
         }
 
+        private Tuple<string?, string?> GetAccountAndSignWalletAddressesFromPayload(UnityPayload payload, AuthType currentAuthType)
+        {
+            var accountWallet = payload.ethAddress is not null ? payload.ethAddress : null;
+            string? signWallet = null;
+            if (currentAuthType.IsWallet())
+                signWallet = accountWallet;
+            return new Tuple<string?, string?>(accountWallet, signWallet);
+        }
+
         private async UniTask AuthWithEth()
         {
             Debug.Log($"[{nameof(SessionManager)}] EthAddress Auth.");
@@ -314,8 +348,8 @@ namespace ElympicsLobbyPackage.Session
                     AuthType = AuthType.EthAddress,
                     Region = new RegionData(_region)
                 });
-                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, null);
-                SaveNewAuthData();
+                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData!, _wallet.Address, _wallet.Address, CurrentSession.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, CurrentSession.Value.TournamentInfo);
+                //SaveNewAuthData();
             }
             catch (Exception e)
             {
@@ -343,7 +377,7 @@ namespace ElympicsLobbyPackage.Session
                     AuthType = AuthType.ClientSecret,
                     Region = new RegionData(_region)
                 });
-                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, null);
+                CurrentSession = new SessionInfo(_lobbyWrapper.AuthData, null, null, CurrentSession!.Value.Capabilities, CurrentSession.Value.Environment, CurrentSession.Value.IsMobile, CurrentSession.Value.ClosestRegion, CurrentSession.Value.TournamentInfo);
             }
             catch (Exception e)
             {
@@ -376,7 +410,7 @@ namespace ElympicsLobbyPackage.Session
         {
             instance = null;
             CurrentSession = null;
-            _authDataStorage.Clear();
+            //_authDataStorage.Clear();
             _lobbyWrapper.SignOut();
         }
     }

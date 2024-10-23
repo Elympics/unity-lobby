@@ -28,5 +28,7 @@ namespace ElympicsLobbyPackage.Authorization
             Environment = environment;
             ClosestRegion = closestRegion;
         }
+
+        public override string ToString() => $"{nameof(ExternalAuthData)} IsAuthData: {AuthData is not null}, IsTournament {TournamentInfo is not null}";
     }
 }

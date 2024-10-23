@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
 {
-    [CreateAssetMenu(fileName = "StandaloneBrowserJsConfig", menuName = "Configs/WalletConfig")]
+    [CreateAssetMenu(fileName = "StandaloneBrowserJsConfig", menuName = "Configs/Standalone/WalletConfig")]
     public class StandaloneBrowserJsConfig : ScriptableObject
     {
         private const string EthPrivateKeyPlayerPrefsKeyBase = "Elympics/EthPrivateKey";

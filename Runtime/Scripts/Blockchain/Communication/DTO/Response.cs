@@ -9,7 +9,5 @@ namespace ElympicsLobbyPackage.Blockchain.EditorIntegration
         public string type;
         public int status;
         public string response;
-
-        public override string ToString() => $"Ticket: {ticket}, Status: {status} Response: {response}";
     }
 }

@@ -23,7 +23,7 @@ namespace ElympicsLobbyPackage
         {
             switch (messageObject.type)
             {
-                case WebMessages.WebGLKeyboardInputControl:
+                case Blockchain.Communication.WebMessages.WebGLKeyboardInputControl:
                     OnKeyboardInputControlsRequested(messageObject.message);
                     break;
             }

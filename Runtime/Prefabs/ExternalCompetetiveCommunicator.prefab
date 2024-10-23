@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 7616533121664948154}
   - component: {fileID: 2963147157415642878}
   - component: {fileID: 5346450838309028157}
+  - component: {fileID: 8012568297055050864}
   m_Layer: 0
   m_Name: ExternalCompetetiveCommunicator
   m_TagString: Untagged
@@ -62,9 +63,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a3c639019a65bb43b058fc6e5ef52f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scsConfig: {fileID: 0}
   standaloneAuthConfig: {fileID: 0}
   standaloneWalletConfig: {fileID: 0}
+  customLeaderboardCommunicator: {fileID: 0}
+  customTournamentCommunicator: {fileID: 0}
 --- !u!114 &-1970892285926819546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -77,7 +79,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e97d1006405763c4188e6caccf5c12a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  config: {fileID: 0}
 --- !u!114 &2308011412948500162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103,7 +104,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a17e61a6b14d57419a5a78f40ffe863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  config: {fileID: 0}
 --- !u!114 &2963147157415642878
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,5 +126,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6021d9e20ecd1049baf8020f825a862, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8012568297055050864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773821390082990743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16d1cf8eca71e874c993ed02b5c28f0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
